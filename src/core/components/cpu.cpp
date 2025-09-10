@@ -1,0 +1,7 @@
+
+
+class CPU {
+    void init() {
+        
+    }
+}

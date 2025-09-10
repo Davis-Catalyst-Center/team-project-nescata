@@ -1,0 +1,3 @@
+class CPU {
+    void init();
+};

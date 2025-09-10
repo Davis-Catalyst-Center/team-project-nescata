@@ -1,0 +1,7 @@
+
+
+class Core {
+    void init() {
+
+    }
+};
