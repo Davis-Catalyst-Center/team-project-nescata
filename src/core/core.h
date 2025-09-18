@@ -1,13 +1,20 @@
+#pragma once
+
+#include "components/cpu.h"
+#include "components/bus.h"
+
+
 /*
 the core initializes and manages all the components
 */
 
-#include "components/cpu.h"
-
 
 class Core {
-    
+public:
+    CPU cpu;
+    Bus bus;
 
+    Core();
 
-    void init();
+    void run();
 };

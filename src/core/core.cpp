@@ -1,7 +1,13 @@
+#include "core.h"
 
+Core::Core() {
+    cpu = CPU();
+    bus = cpu.bus;
+}
 
-class Core {
-    void init() {
-
+void Core::run() {
+    // Main emulation loop
+    while (true) {
+        cpu.clock();
     }
-};
+}
