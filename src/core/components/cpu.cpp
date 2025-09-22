@@ -360,4 +360,6 @@ void CPU::runInstruction(uint8 opcode) {
 // CPU INSTRUCTIONS
 
 
-void CPU::NOP
+void CPU::op_NOP(AddressingMode mode) {
+    // No operation
+}

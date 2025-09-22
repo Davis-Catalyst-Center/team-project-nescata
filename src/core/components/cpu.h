@@ -82,6 +82,6 @@ private:
 
     // CPU INSTRUCTIONS
 
-    void NOP(AddressingMode mode);
+    void op_NOP(AddressingMode mode);
 
 };
