@@ -2,19 +2,20 @@
 
 #include "types.h"
 
-class StatusRegister {
-public:
-    bool n: 1; // Negative
-    bool v: 1; // Overflow
-    bool u: 1; // Unused
-    bool b: 1; // Break
-    bool d: 1; // Decimal
-    bool i: 1; // Interrupt Disable
-    bool z: 1; // Zero
-    bool c: 1; // Carry
 
-    uint8 get();
-    void set(uint8 val);
+
+union StatusRegister {
+    struct {
+        uint8 c: 1; // Carry
+        uint8 z: 1; // Zero
+        uint8 i: 1; // Interrupt Disable
+        uint8 d: 1; // Decimal
+        uint8 b: 1; // Break
+        uint8 u: 1; // Unused
+        uint8 v: 1; // Overflow
+        uint8 n: 1; // Negative
+    };
+    uint8 raw;
 };
 
 
