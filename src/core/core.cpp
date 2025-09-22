@@ -1,13 +1,18 @@
 #include "core.h"
 
 Core::Core() {
-    cpu = CPU();
-    bus = cpu.bus;
+    // Initialize CPU and Bus
 }
 
 void Core::run() {
     // Main emulation loop
-    while (true) {
-        cpu.clock();
-    }
+    // TODO: Implement CPU clock or main loop
+}
+
+void Core::loadCart(Cart* cart) {
+    bus.loadCart(cart);
+}
+
+void Core::unloadCart() {
+    bus.unloadCart();
 }

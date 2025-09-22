@@ -1,20 +1,23 @@
-#pragma once
 
+#pragma once
 #include "types.h"
 
-class StatusRegister {
-public:
-    bool n: 1; // Negative
-    bool v: 1; // Overflow
-    bool u: 1; // Unused
-    bool b: 1; // Break
-    bool d: 1; // Decimal
-    bool i: 1; // Interrupt Disable
-    bool z: 1; // Zero
-    bool c: 1; // Carry
+#include "bus.h"
 
-    uint8 get();
-    void set(uint8 val);
+
+
+union StatusRegister {
+    struct {
+        uint8 n: 1; // Negative
+        uint8 v: 1; // Overflow
+        uint8 u: 1; // Unused
+        uint8 b: 1; // Break
+        uint8 d: 1; // Decimal
+        uint8 i: 1; // Interrupt Disable
+        uint8 z: 1; // Zero
+        uint8 c: 1; // Carry
+    };
+    uint8 raw;
 };
 
 
@@ -26,6 +29,23 @@ public:
     static const uint16 NMI_VECTOR = 0xFFFA;
     static const uint16 RESET_VECTOR = 0xFFFC;
     static const uint16 IRQ_VECTOR = 0xFFFE;
+
+    // ENUMS
+    enum AddressingMode {
+        IMPLIED,
+        ACCUMULATOR,
+        IMMEDIATE,
+        ZERO_PAGE,
+        ZERO_PAGE_X,
+        ZERO_PAGE_Y,
+        RELATIVE,
+        ABSOLUTE,
+        ABSOLUTE_X,
+        ABSOLUTE_Y,
+        INDIRECT,
+        INDIRECT_X,
+        INDIRECT_Y,
+    };
 
 
     // REGISTERS
@@ -40,7 +60,10 @@ public:
 
     CPU();
     void reset();
+    void run();
     void clock();
+    void runInstruction(uint8 opcode);
+
 
     // MEMORY INTERFACING
 
@@ -53,4 +76,12 @@ public:
     void push(uint8 val);
     uint16 pull16();
     void push16(uint16 val);
+
+
+private:
+
+    // CPU INSTRUCTIONS
+
+    void NOP(AddressingMode mode);
+
 };
