@@ -1,1 +1,1 @@
-g++ src/main.cpp -o main.o
+g++ src/*.cpp src/core/*.cpp src/core/components/*.cpp -o main.out && ./main.out

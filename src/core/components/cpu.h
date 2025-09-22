@@ -1,19 +1,21 @@
-#pragma once
 
+#pragma once
 #include "types.h"
+
+#include "bus.h"
 
 
 
 union StatusRegister {
     struct {
-        uint8 c: 1; // Carry
-        uint8 z: 1; // Zero
-        uint8 i: 1; // Interrupt Disable
-        uint8 d: 1; // Decimal
-        uint8 b: 1; // Break
-        uint8 u: 1; // Unused
-        uint8 v: 1; // Overflow
         uint8 n: 1; // Negative
+        uint8 v: 1; // Overflow
+        uint8 u: 1; // Unused
+        uint8 b: 1; // Break
+        uint8 d: 1; // Decimal
+        uint8 i: 1; // Interrupt Disable
+        uint8 z: 1; // Zero
+        uint8 c: 1; // Carry
     };
     uint8 raw;
 };
@@ -28,6 +30,23 @@ public:
     static const uint16 RESET_VECTOR = 0xFFFC;
     static const uint16 IRQ_VECTOR = 0xFFFE;
 
+    // ENUMS
+    enum AddressingMode {
+        IMPLIED,
+        ACCUMULATOR,
+        IMMEDIATE,
+        ZERO_PAGE,
+        ZERO_PAGE_X,
+        ZERO_PAGE_Y,
+        RELATIVE,
+        ABSOLUTE,
+        ABSOLUTE_X,
+        ABSOLUTE_Y,
+        INDIRECT,
+        INDIRECT_X,
+        INDIRECT_Y,
+    };
+
 
     // REGISTERS
     int8 a;           // Accumulator
@@ -41,7 +60,10 @@ public:
 
     CPU();
     void reset();
+    void run();
     void clock();
+    void runInstruction(uint8 opcode);
+
 
     // MEMORY INTERFACING
 
@@ -54,4 +76,12 @@ public:
     void push(uint8 val);
     uint16 pull16();
     void push16(uint16 val);
+
+
+private:
+
+    // CPU INSTRUCTIONS
+
+    void NOP(AddressingMode mode);
+
 };

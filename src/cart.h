@@ -1,7 +1,7 @@
+
 #pragma once
-
 #include <vector>
-
+#include <array>
 #include "core/components/types.h"
 
 class Cart {
@@ -11,4 +11,7 @@ public:
 
     Cart(const char* filename);
     ~Cart();
+
+    uint8 read(uint16 addr);
+    void write(uint16 addr, uint8 val);
 };
