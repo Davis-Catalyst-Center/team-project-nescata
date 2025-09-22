@@ -1,0 +1,7 @@
+{
+  "fps_report_rate": 6,
+  "palette": "engine/palettes/smm.pal",
+  "cart": "carts/mario.nes",
+  "scale": 1,
+  "pscale": 3
+}
