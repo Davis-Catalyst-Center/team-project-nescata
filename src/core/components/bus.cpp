@@ -26,6 +26,7 @@ uint8 Bus::read(uint16 addr) {
             // Placeholder for disabled APU and I/O read
             return 0;
         case 0x4020 ... 0xffff: // Cartridge space (PRG ROM, PRG RAM, and mapper registers)
+            // See if the cart wants to handle this read
             if (cart) return cart->read(addr);
             else return 0;
         default:

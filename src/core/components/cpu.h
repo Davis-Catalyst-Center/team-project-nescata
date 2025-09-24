@@ -25,6 +25,11 @@ union StatusRegister {
 class CPU {
 public:
     // CONSTANTS
+
+    // static const uint8 CYCLE_MAP[256] = {
+        
+    // };
+
     static const uint16 STACK_BASE = 0x0100;
     static const uint16 NMI_VECTOR = 0xFFFA;
     static const uint16 RESET_VECTOR = 0xFFFC;
@@ -58,6 +63,10 @@ public:
 
     Bus bus;
 
+    // STATE
+    long int cycles;
+
+
     CPU();
     void reset();
     void run();
@@ -71,17 +80,23 @@ public:
     void writeMem(uint16 addr, uint8 val);
     uint16 readMem16(uint16 addr);
     void writeMem16(uint16 addr, uint16 val);
+    uint16 readMem16Wrap(uint16 addr);
 
     uint8 pull();
     void push(uint8 val);
     uint16 pull16();
     void push16(uint16 val);
 
+    uint16 getOperandAddress(AddressingMode mode);
+
 
 private:
 
     // CPU INSTRUCTIONS
 
+
+
     void op_NOP(AddressingMode mode);
+    void op_ORA(AddressingMode mode);
 
 };
