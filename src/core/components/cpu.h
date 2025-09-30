@@ -94,9 +94,66 @@ private:
 
     // CPU INSTRUCTIONS
 
+    // OFFICIAL OPCODES
 
-
+    void op_ADC(AddressingMode mode);
+    void op_AND(AddressingMode mode);
+    void op_ASL(AddressingMode mode);
+    void op_BCC(AddressingMode mode);
+    void op_BCS(AddressingMode mode);
+    void op_BEQ(AddressingMode mode);
+    void op_BIT(AddressingMode mode);
+    void op_BMI(AddressingMode mode);
+    void op_BNE(AddressingMode mode);
+    void op_BPL(AddressingMode mode);
+    void op_BRK(AddressingMode mode);
+    void op_BVC(AddressingMode mode);
+    void op_BVS(AddressingMode mode);
+    void op_CLC(AddressingMode mode);
+    void op_CLD(AddressingMode mode);
+    void op_CLI(AddressingMode mode);
+    void op_CLV(AddressingMode mode);
+    void op_CMP(AddressingMode mode);
+    void op_CPX(AddressingMode mode);
+    void op_CPY(AddressingMode mode);
+    void op_DEC(AddressingMode mode);
+    void op_DEX(AddressingMode mode);
+    void op_DEY(AddressingMode mode);
+    void op_EOR(AddressingMode mode);
+    void op_INC(AddressingMode mode);
+    void op_INX(AddressingMode mode);
+    void op_INY(AddressingMode mode);
+    void op_JMP(AddressingMode mode);
+    void op_JSR(AddressingMode mode);
+    void op_LDA(AddressingMode mode);
+    void op_LDX(AddressingMode mode);
+    void op_LDY(AddressingMode mode);
+    void op_LSR(AddressingMode mode);
     void op_NOP(AddressingMode mode);
     void op_ORA(AddressingMode mode);
+    void op_PHA(AddressingMode mode);
+    void op_PHP(AddressingMode mode);
+    void op_PLA(AddressingMode mode);
+    void op_PLP(AddressingMode mode);
+    void op_ROL(AddressingMode mode);
+    void op_ROR(AddressingMode mode);
+    void op_RTI(AddressingMode mode);
+    void op_RTS(AddressingMode mode);
+    void op_SBC(AddressingMode mode);
+    void op_SEC(AddressingMode mode);
+    void op_SED(AddressingMode mode);
+    void op_SEI(AddressingMode mode);
+    void op_STA(AddressingMode mode);
+    void op_STX(AddressingMode mode);
+    void op_STY(AddressingMode mode);
+    void op_TAX(AddressingMode mode);
+    void op_TAY(AddressingMode mode);
+    void op_TSX(AddressingMode mode);
+    void op_TXA(AddressingMode mode);
+    void op_TXS(AddressingMode mode);
+    void op_TYA(AddressingMode mode);
 
+    // UNOFFICIAL OPCODES
+
+    
 };
