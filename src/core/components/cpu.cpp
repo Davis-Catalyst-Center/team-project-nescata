@@ -75,9 +75,9 @@ void CPU::push16(uint16 val) {
 uint16 CPU::getOperandAddress(AddressingMode mode) {
     switch (mode) {
         case IMPLIED:
-            break;
+            return 0; // No operand
         case ACCUMULATOR:
-            break;
+            return 0; // Operand is the accumulator
         case IMMEDIATE:
             return pc++;
         case ZERO_PAGE:
@@ -86,16 +86,29 @@ uint16 CPU::getOperandAddress(AddressingMode mode) {
             return (readMem(pc++) + x) & 0xff;
         case ZERO_PAGE_Y:
             return (readMem(pc++) + y) & 0xff;
+        case RELATIVE:
+            int8 offset = static_cast<int8>(readMem(pc++));
+            return pc + offset;
         case ABSOLUTE:
-            return readMem16(pc+=2);
+            uint16 addr = readMem16(pc);
+            pc += 2;
+            return addr;
         case ABSOLUTE_X:
-            return readMem16(pc+=2) + x;
+            uint16 addr = readMem16(pc) + x;
+            pc += 2;
+            return addr;
         case ABSOLUTE_Y:
-            return readMem16(pc+=2) + y;
+            uint16 addr = readMem16(pc) + y;
+            pc += 2;
+            return addr;
         case INDIRECT:
-            readMem16(readMem16(pc+=2));
+            uint16 addr = readMem16(readMem16(pc));
+            pc += 2;
+            return addr;
         case INDIRECT_X:
-            return readMem16((readMem(pc++) + x) & 0xff);
+            return readMem16((readMem(pc++) + x));
+        case INDIRECT_Y:
+            return readMem16(readMem(pc++)) + y;
         default:
             break;
     }
