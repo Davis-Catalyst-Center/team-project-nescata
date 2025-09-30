@@ -404,11 +404,7 @@ void CPU::runInstruction(uint8 opcode) {
 // CPU INSTRUCTIONS
 
 
-void CPU::op_NOP(AddressingMode mode) {
-    cycles += 2; // NOP takes 2 cycles
-}
 
-void CPU::op_ORA(AddressingMode mode) {
-    uint16 addr = getOperandAddress(mode);
-    
+void CPU::op_NOP(AddressingMode mode) {
+    // No operation
 }

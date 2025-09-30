@@ -92,6 +92,10 @@ public:
 
 private:
 
+    // helpers
+
+    
+
     // CPU INSTRUCTIONS
 
     // OFFICIAL OPCODES
@@ -155,5 +159,4 @@ private:
 
     // UNOFFICIAL OPCODES
 
-    
 };
