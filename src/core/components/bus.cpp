@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "bus.h"
+#include "bus.hpp"
 
 
 // BUS IMPLEMENTATION

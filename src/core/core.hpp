@@ -1,7 +1,7 @@
 #pragma once
 
-#include "components/cpu.h"
-#include "components/bus.h"
+#include "components/cpu.hpp"
+#include "components/bus.hpp"
 
 
 /*

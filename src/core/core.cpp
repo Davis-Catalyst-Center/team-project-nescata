@@ -1,4 +1,4 @@
-#include "core.h"
+#include "core.hpp"
 
 Core::Core() {
     // Initialize CPU and Bus
