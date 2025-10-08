@@ -54,9 +54,9 @@ public:
 
 
     // REGISTERS
-    int8 a;           // Accumulator
-    int8 x;           // X Register
-    int8 y;           // Y Register
+    uint8 a;           // Accumulator
+    uint8 x;           // X Register
+    uint8 y;           // Y Register
     uint16 pc;        // Program Counter
     uint8 s;          // Stack Pointer
     StatusRegister p; // Status Register
@@ -94,7 +94,8 @@ private:
 
     // helpers
 
-    
+    void _setZNFlags(uint8 val);
+    void _addToAccumulator(uint8 val);
 
     // CPU INSTRUCTIONS
 

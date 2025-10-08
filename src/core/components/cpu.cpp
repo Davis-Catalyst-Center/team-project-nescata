@@ -73,11 +73,13 @@ void CPU::push16(uint16 val) {
 
 
 uint16 CPU::getOperandAddress(AddressingMode mode) {
+	int8 offset;
+	uint16 addr;
     switch (mode) {
         case IMPLIED:
             return 0; // No operand
         case ACCUMULATOR:
-            return 0; // Operand is the accumulator
+            return 0; // accumulator
         case IMMEDIATE:
             return pc++;
         case ZERO_PAGE:
@@ -87,22 +89,22 @@ uint16 CPU::getOperandAddress(AddressingMode mode) {
         case ZERO_PAGE_Y:
             return (readMem(pc++) + y) & 0xff;
         case RELATIVE:
-            int8 offset = static_cast<int8>(readMem(pc++));
+            offset = static_cast<int8>(readMem(pc++));
             return pc + offset;
         case ABSOLUTE:
-            uint16 addr = readMem16(pc);
+            addr = readMem16(pc);
             pc += 2;
             return addr;
         case ABSOLUTE_X:
-            uint16 addr = readMem16(pc) + x;
+            addr = readMem16(pc) + x;
             pc += 2;
             return addr;
         case ABSOLUTE_Y:
-            uint16 addr = readMem16(pc) + y;
+            addr = readMem16(pc) + y;
             pc += 2;
             return addr;
         case INDIRECT:
-            uint16 addr = readMem16(readMem16(pc));
+            addr = readMem16(readMem16(pc));
             pc += 2;
             return addr;
         case INDIRECT_X:
@@ -110,7 +112,7 @@ uint16 CPU::getOperandAddress(AddressingMode mode) {
         case INDIRECT_Y:
             return readMem16(readMem(pc++)) + y;
         default:
-            break;
+			return 0; // Should not happen
     }
 }
 
@@ -119,8 +121,8 @@ void CPU::runInstruction(uint8 opcode) {
     switch (opcode) {
         // ---------   OPCODES   --------- // OPCODE | BYTES | CYCLES | ADDRESSING
         case 0x00: op_NOP(IMPLIED);     break; // NOP (0x00) | 1 | 7 | IMPLIED
-        case 0x01: op_ORA(INDIRECT_X);  break; // ORA (0x01) | 2 | 6 | (INDIRECT,X)
-        case 0x02: op_NOP(IMPLIED);     break; 
+        case 0x01: op_NOP(IMPLIED);     break; // ORA (0x01) | 2 | 6 | (INDIRECT,X)
+        case 0x02: op_NOP(IMPLIED);     break;
         case 0x03: op_NOP(IMPLIED);     break;
         case 0x04: op_NOP(IMPLIED);     break;
         case 0x05: op_NOP(IMPLIED);     break;
@@ -401,9 +403,31 @@ void CPU::runInstruction(uint8 opcode) {
     }
 }
 
+// CPU INSTRUCTION HELPERS
+
+void CPU::_setZNFlags(uint8 val) {
+    p.z = (val == 0);
+    p.n = (val & 0x80) != 0;
+}
+
+void CPU::_addToAccumulator(uint8 val) {
+    // Perform addition in wider type to capture carry (implicit promotions)
+    uint16 sum = a + val + p.c;
+    p.c = (sum > 0xFF);
+    // Overflow: if sign of a and val are the same and sign of result differs
+    p.v = (~(a ^ val) & (a ^ sum) & 0x80) != 0;
+    uint8 result = sum & 0xFF;
+    a = result;
+    _setZNFlags(result);
+}
+
+
 // CPU INSTRUCTIONS
 
-
+void CPU::op_ADC(AddressingMode mode) {
+	// Add with Carry
+	_addToAccumulator(readMem(getOperandAddress(mode)));
+}
 
 void CPU::op_NOP(AddressingMode mode) {
     // No operation
