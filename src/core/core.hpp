@@ -11,12 +11,12 @@ the core initializes and manages all the components
 
 class Core {
 public:
-    CPU cpu;
     Bus bus;
+    CPU cpu;
 
     Core();
 
     void run();
-    void loadCart(Cart& cart);
+    void loadCart(Cart* cart);
     void unloadCart();
 };

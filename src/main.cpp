@@ -5,9 +5,9 @@
 
 int main() {
     Core core;
-    Cart cart("path_to_rom.nes");
+    Cart cart("roms/nestest.nes");
 
-    core.loadCart(cart);
+    core.loadCart(&cart);
     core.run();
     return 0;
 }

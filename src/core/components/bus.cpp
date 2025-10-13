@@ -8,7 +8,7 @@
 Bus::Bus() {
     // Initialize memory
     std::fill(std::begin(memory), std::end(memory), 0);
-    cart = Cart(); // No cartridge loaded
+    cart = nullptr; // No cartridge loaded
 }
 
 uint8 Bus::read(uint16 addr) {
@@ -26,8 +26,7 @@ uint8 Bus::read(uint16 addr) {
             // Placeholder for disabled APU and I/O read
             return 0;
         case 0x4020 ... 0xffff: // Cartridge space (PRG ROM, PRG RAM, and mapper registers)
-            // See if the cart wants to handle this read
-            if (!cart.blank) return cart.read(addr);
+            if (cart && !cart->blank) return cart->read(addr); // Delegate to cartridge
             else return 0;
         default:
             std::cout << "Read from unmapped address: " << std::hex << addr << std::dec << "\n";
@@ -38,24 +37,26 @@ uint8 Bus::read(uint16 addr) {
 void Bus::write(uint16 addr, uint8 val) {
     switch (addr) {
         case 0x0000 ... 0x1fff: // 2KB RAM
-            memory[addr] = val;
+            memory[addr & 0x7ff] = val; // Handle mirroring on write
+            break;
+        case 0x2000 ... 0x3fff: // PPU registers
+            // PPU write logic here
+            break;
+        case 0x4000 ... 0x4017: // APU/IO registers
+            // APU/IO write logic here
             break;
         case 0x4020 ... 0xffff:
-            if (!cart.blank) cart.write(addr, val);
+            if (cart && !cart->blank) cart->write(addr, val); // Delegate to cartridge
             break;
         default:
             break;
     }
 }
 
-void Bus::loadCart(Cart& cartRef) {
+void Bus::loadCart(Cart* cartRef) {
     cart = cartRef;
-    // if it's loaded, the cart knows if it's blank
 }
 
 void Bus::unloadCart() {
-    cart.blank = true;
-	// simply mark it as blank
-	// no way to unmark it without loading a new cart
+    cart = nullptr;
 }
-

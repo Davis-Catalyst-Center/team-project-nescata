@@ -1,1 +1,2 @@
-g++ src/*.cpp src/core/*.cpp src/core/components/*.cpp -o main.out && echo "compiled" && ./main.out
+g++ -std=c++17 -o main.out src/*.cpp src/*/*.cpp src/*/*/*.cpp && \
+echo "compiled" && ./main.out

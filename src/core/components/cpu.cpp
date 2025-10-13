@@ -5,8 +5,131 @@
 
 // CPU IMPLEMENTATION
 
-CPU::CPU() {
-    bus = Bus();
+// CONSTANTS
+const uint8 CPU::OPCODE_CYCLES_MAP[256] = {
+	7, 6, 0, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
+	2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+	6, 6, 0, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,
+	2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+	6, 6, 0, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6,
+	2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+	6, 6, 0, 8, 3, 3, 5, 5, 4, 2, 2, 2, 5, 4, 6, 6,
+	2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+	2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,
+	2, 6, 0, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,
+	2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,
+	2, 5, 0, 5, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4,
+	2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
+	2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+	2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
+	2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7
+};
+
+const uint8 CPU::OPCODE_EXTRA_CYCLES_MAP[256] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0
+};
+
+const CPU::AddressingMode CPU::OPCODE_ADDRESSING_MAP[256] = {
+	CPU::IMPLIED, CPU::INDIRECT_X, CPU::IMPLIED, CPU::INDIRECT_X,
+	CPU::IMPLIED, CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE,
+	CPU::IMPLIED, CPU::IMMEDIATE, CPU::ACCUMULATOR, CPU::IMMEDIATE,
+	CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE,
+	
+	CPU::RELATIVE, CPU::INDIRECT_Y, CPU::IMPLIED, CPU::INDIRECT_Y,
+	CPU::IMPLIED, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X,
+	CPU::IMPLIED, CPU::ABSOLUTE_Y, CPU::IMPLIED, CPU::ABSOLUTE_Y,
+	CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X,
+	
+	CPU::ABSOLUTE, CPU::INDIRECT_X, CPU::IMPLIED, CPU::INDIRECT_X,
+	CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE,
+	CPU::IMPLIED, CPU::IMMEDIATE, CPU::ACCUMULATOR, CPU::IMMEDIATE,
+	CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE,
+	
+	CPU::RELATIVE, CPU::INDIRECT_Y, CPU::IMPLIED, CPU::INDIRECT_Y,
+	CPU::IMPLIED, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X,
+	CPU::IMPLIED, CPU::ABSOLUTE_Y, CPU::IMPLIED, CPU::ABSOLUTE_Y,
+	CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X,
+	
+	CPU::IMPLIED, CPU::INDIRECT_X, CPU::IMPLIED, CPU::INDIRECT_X,
+	CPU::IMPLIED, CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE,
+	CPU::IMPLIED, CPU::IMMEDIATE, CPU::ACCUMULATOR, CPU::IMMEDIATE,
+	CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE,
+	
+	CPU::RELATIVE, CPU::INDIRECT_Y, CPU::IMPLIED, CPU::INDIRECT_Y,
+	CPU::IMPLIED, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X,
+	CPU::IMPLIED, CPU::ABSOLUTE_Y, CPU::IMPLIED, CPU::ABSOLUTE_Y,
+	CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X,
+	
+	CPU::IMPLIED, CPU::INDIRECT_X, CPU::IMPLIED, CPU::INDIRECT_X,
+	CPU::IMPLIED, CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE,
+	CPU::IMPLIED, CPU::IMMEDIATE, CPU::ACCUMULATOR, CPU::IMMEDIATE,
+	CPU::INDIRECT, CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE,
+	
+	CPU::RELATIVE, CPU::INDIRECT_Y, CPU::IMPLIED, CPU::INDIRECT_Y,
+	CPU::IMPLIED, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X,
+	CPU::IMPLIED, CPU::ABSOLUTE_Y, CPU::IMPLIED, CPU::ABSOLUTE_Y,
+	CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X,
+	
+	CPU::IMPLIED, CPU::INDIRECT_X, CPU::IMPLIED, CPU::INDIRECT_X,
+	CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE,
+	CPU::IMPLIED, CPU::IMPLIED, CPU::IMPLIED, CPU::IMMEDIATE,
+	CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE,
+	
+	CPU::RELATIVE, CPU::INDIRECT_Y, CPU::IMPLIED, CPU::INDIRECT_Y,
+	CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_Y, CPU::ZERO_PAGE_Y,
+	CPU::IMPLIED, CPU::ABSOLUTE_Y, CPU::IMPLIED, CPU::ZERO_PAGE,
+	CPU::ABSOLUTE_Y, CPU::ABSOLUTE_X, CPU::ZERO_PAGE_Y, CPU::ABSOLUTE_Y,
+	
+	CPU::IMMEDIATE, CPU::INDIRECT_X, CPU::IMMEDIATE, CPU::INDIRECT_X,
+	CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE,
+	CPU::IMPLIED, CPU::IMMEDIATE, CPU::IMPLIED, CPU::ZERO_PAGE,
+	CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE,
+	
+	CPU::RELATIVE, CPU::INDIRECT_Y, CPU::IMPLIED, CPU::INDIRECT_Y,
+	CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_Y, CPU::ZERO_PAGE_Y,
+	CPU::IMPLIED, CPU::ABSOLUTE_Y, CPU::IMPLIED, CPU::ABSOLUTE_Y,
+	CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_Y, CPU::ABSOLUTE_Y,
+	
+	CPU::IMMEDIATE, CPU::INDIRECT_X, CPU::IMPLIED, CPU::INDIRECT_X,
+	CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE,
+	CPU::IMPLIED, CPU::IMMEDIATE, CPU::IMPLIED, CPU::IMMEDIATE,
+	CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE,
+	
+	CPU::RELATIVE, CPU::INDIRECT_Y, CPU::IMPLIED, CPU::INDIRECT_Y,
+	CPU::IMPLIED, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X,
+	CPU::IMPLIED, CPU::ABSOLUTE_Y, CPU::IMPLIED, CPU::ABSOLUTE_Y,
+	CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X,
+	
+	CPU::IMMEDIATE, CPU::INDIRECT_X, CPU::IMPLIED, CPU::INDIRECT_X,
+	CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE, CPU::ZERO_PAGE,
+	CPU::IMPLIED, CPU::IMMEDIATE, CPU::IMPLIED, CPU::IMMEDIATE,
+	CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE, CPU::ABSOLUTE,
+	
+	CPU::RELATIVE, CPU::INDIRECT_Y, CPU::IMPLIED, CPU::INDIRECT_Y,
+	CPU::IMPLIED, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X, CPU::ZERO_PAGE_X,
+	CPU::IMPLIED, CPU::ABSOLUTE_Y, CPU::IMPLIED, CPU::ABSOLUTE_Y,
+	CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X, CPU::ABSOLUTE_X
+};
+
+
+// FUNCTIONS
+
+CPU::CPU(Bus& busRef) : bus(busRef) {
     reset();
 }
 
@@ -20,16 +143,6 @@ void CPU::reset() {
     // flags: NVUBDIZC
 }
 
-void CPU::run() {
-    while (true) {
-        clock();
-    }
-}
-
-void CPU::clock() {
-    uint8 opcode = readMem(pc++);
-    runInstruction(opcode);
-}
 
 uint8 CPU::readMem(uint16 addr) {
     return bus.read(addr);
@@ -117,9 +230,112 @@ uint16 CPU::getOperandAddress(AddressingMode mode) {
 }
 
 
+// CPU INSTRUCTION HELPERS
+
+uint8 CPU::_neg(uint8 val) {
+	return ~val + 1;
+}
+
+void CPU::_setZNFlags(uint8 val) {
+    p.z = (val == 0);
+    p.n = (val & 0x80) != 0;
+}
+
+void CPU::_addToAccumulator(uint8 val) {
+    // Perform addition in wider type to capture carry (implicit promotions)
+    uint16 sum = a + val + p.c;
+    p.c = (sum > 0xFF);
+    // Overflow: if sign of a and val are the same and sign of result differs
+    p.v = (~(a ^ val) & (a ^ sum) & 0x80) != 0;
+    uint8 result = sum & 0xFF;
+    a = result;
+    _setZNFlags(result);
+}
+
+void CPU::_branch(bool condition, AddressingMode mode) {
+	if (condition) {
+		uint16 addr = pc + getOperandAddress(mode);
+		if ((pc & 0xFF00) != (addr & 0xFF00)) {
+			// page crossed
+			cycles += 2;
+		} else {
+			cycles += 1;
+		}
+
+		pc = addr;
+	}
+	// no branch, no extra cycles
+}
+
+
+void CPU::addCycles(uint8 opcode) {
+	cycles += OPCODE_CYCLES_MAP[opcode];
+}
+
+
+
+
+// CPU INSTRUCTIONS
+
+void CPU::op_ADC(AddressingMode mode) {
+	// Add with Carry
+	_addToAccumulator(readMem(getOperandAddress(mode)));
+}
+
+void CPU::op_AND(AddressingMode mode) {
+	// AND with Accumulator
+	a &= readMem(getOperandAddress(mode));
+	_setZNFlags(a);
+}
+
+void CPU::op_ASL(AddressingMode mode) {
+	// Arithmetic Shift Left
+	uint16 addr = getOperandAddress(mode);
+	if (mode == ACCUMULATOR) {
+		p.c = (a & 0x80) != 0;
+		a <<= 1;
+		_setZNFlags(a);
+	} else {
+		uint8 val = readMem(addr);
+		p.c = (val & 0x80) != 0;
+		val <<= 1;
+		writeMem(addr, val);
+		_setZNFlags(val);
+	}
+}
+
+void CPU::op_BCC(AddressingMode mode) {
+	// Branch if Carry Clear
+	if (p.c == 0) {
+		pc = getOperandAddress(mode);
+	}
+}
+
+void CPU::op_NOP(AddressingMode mode) {
+    // No operation
+}
+
+
+
+// RUNNING
+
+
+void CPU::run() {
+    while (true) {
+        clock();
+    }
+}
+
+void CPU::clock() {
+    uint8 opcode = readMem(pc++);
+    runInstruction(opcode);
+	addCycles(opcode);
+}
+
+
 void CPU::runInstruction(uint8 opcode) {
     switch (opcode) {
-        // ---------   OPCODES   --------- // OPCODE | BYTES | CYCLES | ADDRESSING
+        // ---------   OPCODES   --------- //     OPCODE | BYTES | CYCLES | ADDRESSING
         case 0x00: op_NOP(IMPLIED);     break; // NOP (0x00) | 1 | 7 | IMPLIED
         case 0x01: op_NOP(IMPLIED);     break; // ORA (0x01) | 2 | 6 | (INDIRECT,X)
         case 0x02: op_NOP(IMPLIED);     break;
@@ -399,38 +615,4 @@ void CPU::runInstruction(uint8 opcode) {
 			std::cout << "Unknown opcode: " << std::hex << opcode << std::dec << "\n";
             break;
     }
-}
-
-// CPU INSTRUCTION HELPERS
-
-uint8 CPU::_neg(uint8 val) {
-	return ~val + 1;
-}
-
-void CPU::_setZNFlags(uint8 val) {
-    p.z = (val == 0);
-    p.n = (val & 0x80) != 0;
-}
-
-void CPU::_addToAccumulator(uint8 val) {
-    // Perform addition in wider type to capture carry (implicit promotions)
-    uint16 sum = a + val + p.c;
-    p.c = (sum > 0xFF);
-    // Overflow: if sign of a and val are the same and sign of result differs
-    p.v = (~(a ^ val) & (a ^ sum) & 0x80) != 0;
-    uint8 result = sum & 0xFF;
-    a = result;
-    _setZNFlags(result);
-}
-
-
-// CPU INSTRUCTIONS
-
-void CPU::op_ADC(AddressingMode mode) {
-	// Add with Carry
-	_addToAccumulator(readMem(getOperandAddress(mode)));
-}
-
-void CPU::op_NOP(AddressingMode mode) {
-    // No operation
 }
