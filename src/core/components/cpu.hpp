@@ -1,5 +1,7 @@
-
 #pragma once
+
+#include <iostream>
+
 #include "types.hpp"
 
 #include "bus.hpp"
@@ -94,6 +96,7 @@ private:
 
     // helpers
 
+	uint8 _neg(uint8 val);
     void _setZNFlags(uint8 val);
     void _addToAccumulator(uint8 val);
 

@@ -3,7 +3,14 @@
 #include "cart.hpp"
 
 
-Cart::Cart(const char* filename) {
+Cart::Cart() {
+	// do nothing but say it's empty
+	blank = true;
+}
+
+Cart::Cart(std::string filename) {
+
+	blank = true; // until properly loaded
 
     int safe = 1;
     std::ifstream gameFile(filename, std::ios::binary);
@@ -30,6 +37,11 @@ Cart::Cart(const char* filename) {
         header[i] = ch;
     }
     // Constructor implementation (e.g., load ROM file)
+
+
+
+
+	blank = false;
 }
 
 Cart::~Cart() {

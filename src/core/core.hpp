@@ -17,6 +17,6 @@ public:
     Core();
 
     void run();
-    void loadCart(Cart* cart);
+    void loadCart(Cart& cart);
     void unloadCart();
 };

@@ -394,16 +394,18 @@ void CPU::runInstruction(uint8 opcode) {
 
         
         default:
-            // Handle unknown opcode
-            // should NEVER happen
-            // so force error without including a lib
-            // because i'm lazy
-            int errorer = 1 / 0;
+            // should never happen
+			// print for debugging for now
+			std::cout << "Unknown opcode: " << std::hex << opcode << std::dec << "\n";
             break;
     }
 }
 
 // CPU INSTRUCTION HELPERS
+
+uint8 CPU::_neg(uint8 val) {
+	return ~val + 1;
+}
 
 void CPU::_setZNFlags(uint8 val) {
     p.z = (val == 0);

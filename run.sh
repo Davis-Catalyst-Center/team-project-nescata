@@ -1,1 +1,1 @@
-g++ src/*.cpp src/core/*.cpp src/core/components/*.cpp -o main.out && ./main.out
+g++ src/*.cpp src/core/*.cpp src/core/components/*.cpp -o main.out && echo "compiled" && ./main.out

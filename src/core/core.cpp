@@ -9,7 +9,7 @@ void Core::run() {
     // TODO: Implement CPU clock or main loop
 }
 
-void Core::loadCart(Cart* cart) {
+void Core::loadCart(Cart& cart) {
     bus.loadCart(cart);
 }
 
