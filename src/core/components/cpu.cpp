@@ -237,16 +237,16 @@ uint8 CPU::_neg(uint8 val) {
 }
 
 void CPU::_setZNFlags(uint8 val) {
-    p.z = (val == 0);
-    p.n = (val & 0x80) != 0;
+    p.Z = (val == 0);
+    p.N = (val & 0x80) != 0;
 }
 
 void CPU::_addToAccumulator(uint8 val) {
     // Perform addition in wider type to capture carry (implicit promotions)
-    uint16 sum = a + val + p.c;
-    p.c = (sum > 0xFF);
+    uint16 sum = a + val + p.C;
+    p.C = (sum > 0xFF);
     // Overflow: if sign of a and val are the same and sign of result differs
-    p.v = (~(a ^ val) & (a ^ sum) & 0x80) != 0;
+    p.V = (~(a ^ val) & (a ^ sum) & 0x80) != 0;
     uint8 result = sum & 0xFF;
     a = result;
     _setZNFlags(result);
@@ -292,12 +292,12 @@ void CPU::op_ASL(AddressingMode mode) {
 	// Arithmetic Shift Left
 	uint16 addr = getOperandAddress(mode);
 	if (mode == ACCUMULATOR) {
-		p.c = (a & 0x80) != 0;
+		p.C = (a & 0x80) != 0;
 		a <<= 1;
 		_setZNFlags(a);
 	} else {
 		uint8 val = readMem(addr);
-		p.c = (val & 0x80) != 0;
+		p.C = (val & 0x80) != 0;
 		val <<= 1;
 		writeMem(addr, val);
 		_setZNFlags(val);
@@ -306,7 +306,7 @@ void CPU::op_ASL(AddressingMode mode) {
 
 void CPU::op_BCC(AddressingMode mode) {
 	// Branch if Carry Clear
-	if (p.c == 0) {
+	if (p.C == 0) {
 		pc = getOperandAddress(mode);
 	}
 }

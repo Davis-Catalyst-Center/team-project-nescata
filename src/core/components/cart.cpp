@@ -1,5 +1,3 @@
-#include <fstream>
-#include <iostream>
 #include "cart.hpp"
 
 #include "mappers/mapper0.hpp"

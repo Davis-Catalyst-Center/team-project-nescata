@@ -9,14 +9,14 @@
 
 union StatusRegister {
     struct {
-        uint8 n: 1; // Negative
-        uint8 v: 1; // Overflow
-        uint8 u: 1; // Unused
-        uint8 b: 1; // Break
-        uint8 d: 1; // Decimal
-        uint8 i: 1; // Interrupt Disable
-        uint8 z: 1; // Zero
-        uint8 c: 1; // Carry
+        uint8 N: 1; // Negative
+        uint8 V: 1; // Overflow
+        uint8 U: 1; // Unused
+        uint8 B: 1; // Break
+        uint8 D: 1; // Decimal
+        uint8 I: 1; // Interrupt Disable
+        uint8 Z: 1; // Zero
+        uint8 C: 1; // Carry
     };
     uint8 raw;
 };
