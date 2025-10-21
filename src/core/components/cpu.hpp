@@ -1,21 +1,22 @@
-
 #pragma once
-#include "types.h"
 
-#include "bus.h"
+#include <iostream>
+
+#include "types.hpp"
+#include "bus.hpp"
 
 
 
 union StatusRegister {
     struct {
-        uint8 n: 1; // Negative
-        uint8 v: 1; // Overflow
-        uint8 u: 1; // Unused
-        uint8 b: 1; // Break
-        uint8 d: 1; // Decimal
-        uint8 i: 1; // Interrupt Disable
-        uint8 z: 1; // Zero
-        uint8 c: 1; // Carry
+        uint8 N: 1; // Negative
+        uint8 V: 1; // Overflow
+        uint8 U: 1; // Unused
+        uint8 B: 1; // Break
+        uint8 D: 1; // Decimal
+        uint8 I: 1; // Interrupt Disable
+        uint8 Z: 1; // Zero
+        uint8 C: 1; // Carry
     };
     uint8 raw;
 };
@@ -26,14 +27,6 @@ class CPU {
 public:
     // CONSTANTS
 
-    // static const uint8 CYCLE_MAP[256] = {
-        
-    // };
-
-    static const uint16 STACK_BASE = 0x0100;
-    static const uint16 NMI_VECTOR = 0xFFFA;
-    static const uint16 RESET_VECTOR = 0xFFFC;
-    static const uint16 IRQ_VECTOR = 0xFFFE;
 
     // ENUMS
     enum AddressingMode {
@@ -52,26 +45,37 @@ public:
         INDIRECT_Y,
     };
 
+	// OPCODE LOOKUP TABLES
+
+	static const uint8 OPCODE_CYCLES_MAP[256];
+	static const uint8 OPCODE_EXTRA_CYCLES_MAP[256];
+	static const AddressingMode OPCODE_ADDRESSING_MAP[256];
+
+	// MEMORY CONSTANTS
+
+    static const uint16 STACK_BASE = 0x0100;
+    static const uint16 NMI_VECTOR = 0xFFFA;
+    static const uint16 RESET_VECTOR = 0xFFFC;
+    static const uint16 IRQ_VECTOR = 0xFFFE;
+
+
 
     // REGISTERS
-    int8 a;           // Accumulator
-    int8 x;           // X Register
-    int8 y;           // Y Register
+    uint8 a;          // Accumulator
+    uint8 x;          // X Register
+    uint8 y;          // Y Register
     uint16 pc;        // Program Counter
     uint8 s;          // Stack Pointer
     StatusRegister p; // Status Register
 
-    Bus bus;
+    Bus& bus;
 
     // STATE
     long int cycles;
 
 
-    CPU();
+    CPU(Bus& busRef);
     void reset();
-    void run();
-    void clock();
-    void runInstruction(uint8 opcode);
 
 
     // MEMORY INTERFACING
@@ -94,7 +98,14 @@ private:
 
     // helpers
 
-    
+	uint8 _neg(uint8 val);
+    void _setZNFlags(uint8 val);
+    void _addToAccumulator(uint8 val);
+	void _branch(bool condition, AddressingMode mode);
+
+	void addCycles(uint8 opcode);
+
+
 
     // CPU INSTRUCTIONS
 
@@ -158,5 +169,17 @@ private:
     void op_TYA(AddressingMode mode);
 
     // UNOFFICIAL OPCODES
+
+
+
+
+
+public:
+
+	// RUNNING
+
+    void run();
+    void clock();
+    void runInstruction(uint8 opcode);
 
 };

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "types.h"
-#include "cart.h"
+#include "types.hpp"
+#include "cart.hpp"
 
 
 class Bus {
 public:
     uint8 memory [0x800]; // 2KB internal +memory
-
-    Cart* cart;
+    
+    Cart* cart = nullptr;
 
     Bus();
 

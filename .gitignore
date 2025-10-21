@@ -1,2 +1,4 @@
-*.nes
+# Ignore all NES files that start with .
+.*.nes
+# Ignore all Python bytecode files
 *.pyc
