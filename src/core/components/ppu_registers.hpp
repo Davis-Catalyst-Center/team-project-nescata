@@ -25,7 +25,7 @@ union PPUMASK {
 		uint8 b : 1; // Show background
 		uint8 M : 1; // Show sprites in leftmost 8 pixels of screen
 		uint8 m : 1; // Show background in leftmost 8 pixels of screen
-		uint8 g : 1; // Greyscale
+		uint8 g : 1; // Grayscale
 	};
 	uint8 raw;
 };
