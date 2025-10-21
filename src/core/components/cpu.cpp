@@ -8,6 +8,11 @@
 // FUNCTIONS
 
 CPU::CPU(Bus& busRef) : bus(busRef) {
+	// Clear any previous CPU instruction log on emulator startup so traces
+	// from earlier runs don't contaminate the current run.
+	FILE* f = fopen("cpu.log", "w");
+	if (f) fclose(f);
+
 	reset();
 }
 
@@ -31,15 +36,19 @@ void CPU::writeMem16(uint16 addr, uint16 val) {
 }
 
 uint16 CPU::readMem16Wrap(uint16 addr) {
-	return (readMem((addr & 0xff00) | ((addr + 1) & 0x00ff)) << 8) | readMem(addr);
+	if ((addr & 0x00ff) == 0x00ff)  // Fixed operator precedence
+		return readMem(addr) | (readMem(addr & 0xff00) << 8);
+	return readMem16(addr);
 }
 
 uint8 CPU::pull() {
-	return readMem(STACK_BASE + (++s));
+    s++; //Increment stack pointer
+    return readMem(STACK_BASE + s);
 }
 
 void CPU::push(uint8 val) {
-	writeMem(STACK_BASE + (s--), val);
+    writeMem(STACK_BASE + s, val); //Write to where S points
+    s--; //decrement to point to next free space
 }
 
 uint16 CPU::pull16() {
@@ -56,82 +65,82 @@ void CPU::push16(uint16 val) {
 
 
 
-uint16 CPU::getOperandAddress(AddressingMode mode, bool* pageCrossed) {
+
+uint16 CPU::getOperandAddress(AddressingMode mode) {
 	int8 offset;
 	uint16 addr;
 	bool crossed = false;
 
 	switch (mode) {
 		case IMPLIED:
-			if (pageCrossed) *pageCrossed = false;
 			return 0; // No operand
 		case ACCUMULATOR:
-			if (pageCrossed) *pageCrossed = false;
 			return 0; // accumulator
 		case IMMEDIATE:
-			if (pageCrossed) *pageCrossed = false;
 			return pc++;
 		case ZERO_PAGE:
-			if (pageCrossed) *pageCrossed = false;
 			return readMem(pc++);
 		case ZERO_PAGE_X:
-			if (pageCrossed) *pageCrossed = false;
 			return (readMem(pc++) + x) & 0xff;
 		case ZERO_PAGE_Y:
-			if (pageCrossed) *pageCrossed = false;
 			return (readMem(pc++) + y) & 0xff;
 		case RELATIVE:
-			offset = static_cast<int8>(readMem(pc++));
-			addr = pc + offset;
-			if (pageCrossed) *pageCrossed = ((pc & 0xFF00) != (addr & 0xFF00));
-			return addr;
+			return readMem(pc);
 		case ABSOLUTE:
 			addr = readMem16(pc);
 			pc += 2;
-			if (pageCrossed) *pageCrossed = false;
 			return addr;
 		case ABSOLUTE_X: {
 			uint16 base = readMem16(pc);
 			addr = base + x;
 			pc += 2;
-			crossed = ((base & 0xFF00) != (addr & 0xFF00));
-			if (pageCrossed) *pageCrossed = crossed;
-			if (crossed) cycles += 1; // extra cycle for page crossing
 			return addr;
 		}
 		case ABSOLUTE_Y: {
 			uint16 base = readMem16(pc);
 			addr = base + y;
 			pc += 2;
-			crossed = ((base & 0xFF00) != (addr & 0xFF00));
-			if (pageCrossed) *pageCrossed = crossed;
-			if (crossed) cycles += 1; // extra cycle for page crossing
 			return addr;
 		}
 		case INDIRECT:
-			addr = readMem16(readMem16(pc));
+			addr = readMem16Wrap(readMem16(pc));
 			pc += 2;
-			if (pageCrossed) *pageCrossed = false;
 			return addr;
 		case INDIRECT_X: {
-			if (pageCrossed) *pageCrossed = false;
-			return readMem16((readMem(pc++) + x));
+			uint8 zeroPageAddr = readMem(pc++);
+			uint8 effectiveAddr = (zeroPageAddr + x) & 0xFF;
+			return readMem16Wrap(effectiveAddr);
 		}
 		case INDIRECT_Y: {
 			uint16 base = readMem(pc++);
-			uint16 baseAddr = readMem16(base);
+			uint16 baseAddr = readMem16Wrap(base);
 			addr = baseAddr + y;
-			crossed = ((baseAddr & 0xFF00) != (addr & 0xFF00));
-			if (pageCrossed) *pageCrossed = crossed;
-			if (crossed) cycles += 1; // extra cycle for page crossing
 			return addr;
 		}
 		default:
-			if (pageCrossed) *pageCrossed = false;
 			return 0; // Should not happen
 	}
 }
 
+void CPU::addCycles(uint8 opcode) {
+	cycles += OPCODE_CYCLES_MAP[opcode];
+	AddressingMode mode = OPCODE_ADDRESSING_MAP[opcode];
+	if (OPCODE_EXTRA_CYCLES_MAP[opcode] == 1) {
+
+	}
+}
+
+
+uint8 CPU::_getStatus(bool flagB) {
+	if (flagB)
+		return p.raw | 0b00110000;
+	else
+		return p.raw & 0b11101111 | 0b00100000;
+}
+
+void CPU::_setStatus(uint8 status) {
+	p.raw = status & 0b11101111 | 0b00100000;
+}
 
 // CPU INSTRUCTION HELPERS
 
@@ -165,14 +174,17 @@ void CPU::_compare(uint8 val1, uint8 val2) {
 void CPU::_branch(bool condition, AddressingMode mode) {
 	// Always compute the target (advances PC). getOperandAddress will set
 	// pageCrossed if appropriate.
-	bool crossed = false;
-	uint16 addr = getOperandAddress(mode, &crossed);
+
+	uint16 addr = getOperandAddress(mode) + pc;
+
 	if (condition) {
 		// branch taken: +1 cycle, and +1 more if page crossed
 		cycles += 1;
-		if (crossed) cycles += 1;
+		if ((pc & 0xFF00) != (addr & 0xFF00)) cycles++;
 		pc = addr;
 	}
+
+	pc++;
 	// no branch, no extra cycles
 }
 
@@ -202,9 +214,6 @@ void CPU::_interrupt(CPU::InterruptVector vec) {
 }
 
 
-void CPU::addCycles(uint8 opcode) {
-	cycles += OPCODE_CYCLES_MAP[opcode];
-}
 
 
 
@@ -450,7 +459,7 @@ void CPU::op_PHA(AddressingMode mode) {
 
 void CPU::op_PHP(AddressingMode mode) {
 	// Push Processor Status
-	push(p.raw);
+	push(_getStatus(true));
 }
 
 void CPU::op_PLA(AddressingMode mode) {
@@ -461,7 +470,7 @@ void CPU::op_PLA(AddressingMode mode) {
 
 void CPU::op_PLP(AddressingMode mode) {
 	// Pull Processor Status
-	p.raw = pull();
+	_setStatus(pull());
 	p.U = 1;
 }
 
@@ -507,11 +516,7 @@ void CPU::op_ROR(AddressingMode mode) {
 
 void CPU::op_RTI(AddressingMode mode) {
 	// Return from Interrupt
-	uint8 flags = pull();
-	flags &= ~(1 << 4);
-	flags &= ~(1 << 5);
-	p.raw = flags;
-
+	_setStatus(pull());
 	pc = pull16();
 }
 
@@ -523,7 +528,7 @@ void CPU::op_RTS(AddressingMode mode) {
 void CPU::op_SBC(AddressingMode mode) {
 	// Subtract with Carry
 	uint16 addr = getOperandAddress(mode);
-	_addToAccumulator(_neg(readMem(addr)));
+	_addToAccumulator(readMem(addr) ^ 0xFF);
 }
 
 void CPU::op_SEC(AddressingMode mode) {
@@ -606,7 +611,7 @@ void CPU::reset() {
 	a = 0;
 	x = 0;
 	y = 0;
-	pc = 0xc000; // readMem16(RESET_VECTOR);
+	pc = 0xC000; // readMem16(RESET_VECTOR); replaced with fixed value for nestest
 	s = 0xFD;    // Stack pointer powerup state
 	p.raw = 0b00100100; // Typical initial status register value
 	// flags: NVUBDIZC
@@ -627,17 +632,14 @@ void CPU::clock() {
 	uint16 instrPc = pc;
 	uint8 opcode = readMem(pc++);
 
-	// Read up to 3 operand bytes for logging (safe: don't advance pc here)
-	uint8 opcodeBytes[3] = {0,0,0};
-	// Many opcodes use up to 2 operand bytes; read a small window for logging
-	opcodeBytes[0] = readMem(instrPc);
-	opcodeBytes[1] = readMem(instrPc + 1);
-	opcodeBytes[2] = readMem(instrPc + 2);
-
-	runInstruction(opcode);
-	addCycles(opcode);
-
+	
 	if (enableCpuLog) {
+		// Read up to 3 operand bytes for logging (safe: don't advance pc here)
+		uint8 opcodeBytes[3] = {0,0,0};
+		// Many opcodes use up to 2 operand bytes; read a small window for logging
+		opcodeBytes[0] = readMem(instrPc);
+		opcodeBytes[1] = readMem(instrPc + 1);
+		opcodeBytes[2] = readMem(instrPc + 2);
 		// Determine byte count: use addressing map to get how many bytes
 		// the opcode consumes. We'll infer 1, 2 or 3 bytes from the
 		// addressing mode table stored in the header.
@@ -663,6 +665,33 @@ void CPU::clock() {
 				byteCount = 1;
 		}
 		logInstruction(instrPc, opcode, opcodeBytes, byteCount);
+
+		if (cycles == 2603) {
+			for (int i = 0; i < 0x200; i++) {
+				if (!(i % 16)) {
+					printf("\n");
+				}
+				printf("%02X ", readMem(i));
+			}
+			printf("\n");
+		}
+	}
+
+	runInstruction(opcode);
+	addCycles(opcode);
+
+
+	if (cycles >= 29475) {
+		enableCpuLog = false;
+		for (int i = 0; i < 0x200; i++) {
+			if (!(i % 16)) {
+				printf("\n");
+			}
+			printf("%02X ", readMem(i));
+		}
+
+		int a[0];
+		printf("%d", a[12939024244]); // stop here with segfault
 	}
 }
 
@@ -687,9 +716,15 @@ void CPU::logInstruction(uint16 instrPc, uint8 opcode, const uint8* opcodeBytes,
 	}
 
 	// Print registers in the compact style requested
-	// a:00 x:00 y:00 p:24 sp:00100100 cyc:7
-	fprintf(f, " a:%02X x:%02X y:%02X p:%08b sp:%02X cyc:%ld\n",
-			a, x, y, p.raw, s, cycles);
+	// a:00 x:00 y:00 p:00100100 sp:02 cyc:7
+	// Note: "%08b" is not standard in C, so format p.raw manually as binary
+	char p_bits[9];
+	for (int i = 7; i >= 0; --i) {
+		p_bits[7 - i] = ((p.raw >> i) & 1) ? '1' : '0';
+	}
+	p_bits[8] = '\0';
+	fprintf(f, " a:%02X x:%02X y:%02X p:%s sp:%02X\n",// cyc:%ld\n",
+			a, x, y, p_bits, s, cycles);
 
 	fclose(f);
 }

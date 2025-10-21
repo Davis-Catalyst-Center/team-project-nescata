@@ -8,15 +8,15 @@
 
 
 union StatusRegister {
-    struct {
-        uint8 N: 1; // Negative
-        uint8 V: 1; // Overflow
-        uint8 U: 1; // Unused
-        uint8 B: 1; // Break
-        uint8 D: 1; // Decimal
-        uint8 I: 1; // Interrupt Disable
+	struct {
+		uint8 C: 1; // Carry
         uint8 Z: 1; // Zero
-        uint8 C: 1; // Carry
+        uint8 I: 1; // Interrupt Disable
+        uint8 D: 1; // Decimal
+        uint8 B: 1; // Break
+        uint8 U: 1; // Unused
+		uint8 V: 1; // Overflow
+        uint8 N: 1; // Negative
     };
     uint8 raw;
 };
@@ -199,9 +199,16 @@ public:
     // appended to `cpu.log` in a compact single-line format for debugging.
     bool enableCpuLog = false;
 
+	bool pageCrossed;
+
 
     CPU(Bus& busRef);
     void reset();
+
+    // After calling getOperandAddress, this returns whether the addressing
+    // calculation crossed a 0xFF->0x00 page boundary (used for extra cycle
+    // accounting). This replaces the previous out-parameter pointer.
+    bool getLastPageCrossed() const;
 
 
     // MEMORY INTERFACING
@@ -217,19 +224,16 @@ public:
     uint16 pull16();
     void push16(uint16 val);
 
-    // Returns the effective operand address for the given addressing mode.
-    // If `pageCrossed` is non-null and the addressing mode can cause a page
-    // boundary crossing (Absolute,X; Absolute,Y; Indirect,Y; Relative),
-    // *pageCrossed will be set to true when the computed address crosses a
-    // 0x100 page boundary relative to the base address used for the
-    // calculation (this is useful for adding the 6502 extra-cycle on page
-    // crossing).
-    uint16 getOperandAddress(AddressingMode mode, bool* pageCrossed = nullptr);
 
 
 private:
 
     // helpers
+
+    uint16 getOperandAddress(AddressingMode mode);
+	void addCycles(uint8 opcode);
+
+	// specific helpers
 
 	uint8 _neg(uint8 val);
     void _setZNFlags(uint8 val);
@@ -237,8 +241,9 @@ private:
 	void _compare(uint8 val1, uint8 val2);
     void _branch(bool condition, AddressingMode mode);
     void _interrupt(InterruptVector vec);
+	uint8 _getStatus(bool flagB);
+	void _setStatus(uint8 status);
 
-	void addCycles(uint8 opcode);
 
 
 
@@ -309,7 +314,7 @@ private:
 	void op_ALR(AddressingMode mode);
 	void op_ANC(AddressingMode mode);
 	void op_ARR(AddressingMode mode);
-
+	
 
 
 

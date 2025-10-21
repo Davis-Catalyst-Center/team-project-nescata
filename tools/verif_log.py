@@ -1,17 +1,25 @@
 with open("cpu.log", "r") as f:
-	log_lines = f.read().split("\n")
+	# splitlines avoids keeping a final empty string if file ends with a newline
+	log_lines = f.read().splitlines()
 
 with open("tools/nestest_placeholder.txt", "r") as f:
-	verif_lines = f.read().split("\n")
-
+	verif_lines = f.read().splitlines()
 
 mismatches = 0
-for i in range(8992):
-	if log_lines != verif_lines:
+max_lines = max(len(log_lines), len(verif_lines))
+for i in range(max_lines):
+	log_line = log_lines[i] if i < len(log_lines) else "<MISSING>"
+	ver_line = verif_lines[i] if i < len(verif_lines) else "<MISSING>"
+	if log_line != ver_line:
 		mismatches += 1
-		print(f"mismatch at line {i+1}:")
-		print(f"log: {log_lines[i]}")
-		print(f"ver: {verif_lines[i]}")
-	if mismatches >= 10:
+		print(f"\nmismatch at line {i+1}:")
+		for j in range(-7, 3):
+			index = i + j
+			log_context = log_lines[index] if 0 <= index < len(log_lines) else "<MISSING>"
+			ver_context = verif_lines[index] if 0 <= index < len(verif_lines) else "<MISSING>"
+			prefix = ">> " if j == 0 else "   "
+			print(f"{prefix}log: {log_context}")
+			if j >= 0: print(f"{prefix}ver: {ver_context}")
+	if mismatches >= 3:
 		print("too many errors")
 		break
