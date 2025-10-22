@@ -54,124 +54,47 @@ public:
 
 	// OPCODE LOOKUP TABLES
 
+    // This table holds the BASE cycle counts for each instruction.
+    // Additional cycles for page crosses or taken branches are added conditionally.
     inline static const uint8 OPCODE_CYCLES_MAP[256] = {
-        7, 6, 0, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
-        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
-        6, 6, 0, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,
-        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
-        6, 6, 0, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6,
-        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
-        6, 6, 0, 8, 3, 3, 5, 5, 4, 2, 2, 2, 5, 4, 6, 6,
-        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
-        2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,
-        2, 6, 0, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,
-        2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,
-        2, 5, 0, 5, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4,
-        2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
-        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
-        2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
-        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7
+      //  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+        7, 6, 0, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6, // 0
+        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7, // 1
+        6, 6, 0, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6, // 2
+        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7, // 3
+        6, 6, 0, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6, // 4
+        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7, // 5
+        6, 6, 0, 8, 3, 3, 5, 5, 4, 2, 2, 2, 5, 4, 6, 6, // 6
+        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7, // 7
+        2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4, // 8
+        2, 6, 0, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5, // 9
+        2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4, // A
+        2, 5, 0, 5, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4, // B
+        2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6, // C
+        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7, // D
+        2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6, // E
+        2, 5, 0, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7  // F
     };
-
-    inline static const uint8 OPCODE_EXTRA_CYCLES_MAP[256] = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0
-    };
+    
+    // NOTE: OPCODE_EXTRA_CYCLES_MAP has been removed.
 
     inline static const AddressingMode OPCODE_ADDRESSING_MAP[256] = {
-        IMPLIED, INDIRECT_X, IMPLIED, INDIRECT_X,
-        IMPLIED, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
-        IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE,
-        ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
-
-        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y,
-        IMPLIED, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X,
-        IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y,
-        ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
-
-        ABSOLUTE, INDIRECT_X, IMPLIED, INDIRECT_X,
-        ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
-        IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE,
-        ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
-
-        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y,
-        IMPLIED, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X,
-        IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y,
-        ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
-
-        IMPLIED, INDIRECT_X, IMPLIED, INDIRECT_X,
-        IMPLIED, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
-        IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE,
-        ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
-
-        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y,
-        IMPLIED, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X,
-        IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y,
-        ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
-
-        IMPLIED, INDIRECT_X, IMPLIED, INDIRECT_X,
-        IMPLIED, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
-        IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE,
-        INDIRECT, ABSOLUTE, ABSOLUTE, ABSOLUTE,
-
-        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y,
-        IMPLIED, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X,
-        IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y,
-        ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
-
-        IMPLIED, INDIRECT_X, IMPLIED, INDIRECT_X,
-        ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
-        IMPLIED, IMPLIED, IMPLIED, IMMEDIATE,
-        ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
-
-        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y,
-        ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_Y, ZERO_PAGE_Y,
-        IMPLIED, ABSOLUTE_Y, IMPLIED, ZERO_PAGE,
-        ABSOLUTE_Y, ABSOLUTE_X, ZERO_PAGE_Y, ABSOLUTE_Y,
-
-        IMMEDIATE, INDIRECT_X, IMMEDIATE, INDIRECT_X,
-        ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
-        IMPLIED, IMMEDIATE, IMPLIED, ZERO_PAGE,
-        ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
-
-        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y,
-        ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_Y, ZERO_PAGE_Y,
-        IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y,
-        ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_Y, ABSOLUTE_Y,
-
-        IMMEDIATE, INDIRECT_X, IMPLIED, INDIRECT_X,
-        ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
-        IMPLIED, IMMEDIATE, IMPLIED, IMMEDIATE,
-        ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
-
-        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y,
-        IMPLIED, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X,
-        IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y,
-        ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
-
-        IMMEDIATE, INDIRECT_X, IMPLIED, INDIRECT_X,
-        ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE,
-        IMPLIED, IMMEDIATE, IMPLIED, IMMEDIATE,
-        ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
-
-        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y,
-        IMPLIED, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X,
-        IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y,
-        ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X
+        IMPLIED, INDIRECT_X, IMPLIED, INDIRECT_X, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE, ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
+        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
+        ABSOLUTE, INDIRECT_X, IMPLIED, INDIRECT_X, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE, ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
+        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
+        IMPLIED, INDIRECT_X, IMPLIED, INDIRECT_X, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE, ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
+        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
+        IMPLIED, INDIRECT_X, IMPLIED, INDIRECT_X, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, IMPLIED, IMMEDIATE, ACCUMULATOR, IMMEDIATE, INDIRECT, ABSOLUTE, ABSOLUTE, ABSOLUTE,
+        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
+        IMMEDIATE, INDIRECT_X, IMMEDIATE, INDIRECT_X, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, IMPLIED, IMMEDIATE, IMPLIED, IMMEDIATE, ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
+        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_Y, ZERO_PAGE_Y, IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
+        IMMEDIATE, INDIRECT_X, IMMEDIATE, INDIRECT_X, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, IMPLIED, IMMEDIATE, IMPLIED, IMMEDIATE, ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
+        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_Y, ZERO_PAGE_Y, IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_Y, ABSOLUTE_Y,
+        IMMEDIATE, INDIRECT_X, IMMEDIATE, INDIRECT_X, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, IMPLIED, IMMEDIATE, IMPLIED, IMMEDIATE, ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
+        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
+        IMMEDIATE, INDIRECT_X, IMMEDIATE, INDIRECT_X, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, ZERO_PAGE, IMPLIED, IMMEDIATE, IMPLIED, IMMEDIATE, ABSOLUTE, ABSOLUTE, ABSOLUTE, ABSOLUTE,
+        RELATIVE, INDIRECT_Y, IMPLIED, INDIRECT_Y, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, ZERO_PAGE_X, IMPLIED, ABSOLUTE_Y, IMPLIED, ABSOLUTE_Y, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X, ABSOLUTE_X,
     };
 
 	// MEMORY CONSTANTS
@@ -194,6 +117,8 @@ public:
     Bus& bus;
 
     // STATE
+	bool jammed = false;
+
     long int cycles;
     // Instruction logging toggle. When true, each executed instruction will be
     // appended to `cpu.log` in a compact single-line format for debugging.
@@ -231,15 +156,16 @@ private:
     // helpers
 
     uint16 getOperandAddress(AddressingMode mode);
-	void addCycles(uint8 opcode);
 
 	// specific helpers
 
 	uint8 _neg(uint8 val);
+	int8 _toSigned(uint8 val);
+	uint8 _toUnsigned(int8 val);
     void _setZNFlags(uint8 val);
     void _addToAccumulator(uint8 val);
 	void _compare(uint8 val1, uint8 val2);
-    void _branch(bool condition, AddressingMode mode);
+    void _branch(bool condition);
     void _interrupt(InterruptVector vec);
 	uint8 _getStatus(bool flagB);
 	void _setStatus(uint8 status);
@@ -313,8 +239,28 @@ private:
 
 	void op_ALR(AddressingMode mode);
 	void op_ANC(AddressingMode mode);
+	void op_ANC2(AddressingMode mode);
+	void op_ANE(AddressingMode mode);
 	void op_ARR(AddressingMode mode);
-	
+	void op_DCP(AddressingMode mode);
+	void op_ISC(AddressingMode mode);
+	void op_LAS(AddressingMode mode);
+	void op_LAX(AddressingMode mode);
+	void op_LXA(AddressingMode mode);
+	void op_RLA(AddressingMode mode);
+	void op_RRA(AddressingMode mode);
+	void op_SAX(AddressingMode mode);
+	void op_SBX(AddressingMode mode);
+	void op_SHA(AddressingMode mode);
+	void op_SHX(AddressingMode mode);
+	void op_SHY(AddressingMode mode);
+	void op_SLO(AddressingMode mode);
+	void op_SRE(AddressingMode mode);
+	void op_TAS(AddressingMode mode);
+	void op_USBC(AddressingMode mode);
+	void op_JAM(AddressingMode mode);
+
+
 
 
 

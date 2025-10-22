@@ -46,7 +46,7 @@ for i, line in enumerate(og_lines):
 	cycle = line[90:]
 	if i == 0: print(f"Cycle: {cycle}")
 
-	new_line = f"{addr} {assembly_bytes} a:{a_reg} x:{x_reg} y:{y_reg} p:{int(p_reg, 16):08b} sp:{sp_reg}"# cyc:{cycle}"
+	new_line = f"{addr} {assembly_bytes} a:{a_reg} x:{x_reg} y:{y_reg} p:{int(p_reg, 16):08b} sp:{sp_reg} cyc:{cycle}"
 	new_lines.append(new_line)
 
 	if i == 0:

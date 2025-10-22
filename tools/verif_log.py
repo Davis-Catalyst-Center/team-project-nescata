@@ -13,7 +13,7 @@ for i in range(max_lines):
 	if log_line != ver_line:
 		mismatches += 1
 		print(f"\nmismatch at line {i+1}:")
-		for j in range(-7, 3):
+		for j in range(-5, 2):
 			index = i + j
 			log_context = log_lines[index] if 0 <= index < len(log_lines) else "<MISSING>"
 			ver_context = verif_lines[index] if 0 <= index < len(verif_lines) else "<MISSING>"
