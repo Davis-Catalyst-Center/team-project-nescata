@@ -1,12 +1,12 @@
-#include "core.h"
+#include "core.hpp"
 
-Core::Core() {
-    // Initialize CPU and Bus
+Core::Core() : cpu(bus) {
+    // cpu is initialized via member initializer list
 }
 
 void Core::run() {
-    // Main emulation loop
-    // TODO: Implement CPU clock or main loop
+    cpu.reset();
+    cpu.run();
 }
 
 void Core::loadCart(Cart* cart) {

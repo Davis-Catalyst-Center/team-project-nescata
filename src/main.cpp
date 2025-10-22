@@ -1,11 +1,11 @@
-#include "core/core.h"
-#include "cart.h"
+#include "core/core.hpp"
+#include "core/components/cart.hpp"
 
 
 
 int main() {
     Core core;
-    Cart cart("path_to_rom.nes");
+    Cart cart("roms/nestest.nes");
 
     core.loadCart(&cart);
     core.run();
