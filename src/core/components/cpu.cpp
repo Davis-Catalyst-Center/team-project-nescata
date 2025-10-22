@@ -677,12 +677,10 @@ void CPU::reset() {
 }
 
 void CPU::run() {
-	enableCpuLog = true;
 	while (true) {
 		clock();
 	}
 }
-// in cpu.cpp
 
 void CPU::clock() {
 	// Capture program counter at instruction start so log lines show the
@@ -729,11 +727,6 @@ void CPU::clock() {
 	cycles += OPCODE_CYCLES_MAP[opcode];
 
 	runInstruction(opcode);
-	
-	if (cycles >= 29475) {
-		enableCpuLog = false;
-		exit(0);
-	}
 }
 
 void CPU::logInstruction(uint16 instrPc, uint8 opcode, const uint8* opcodeBytes, size_t byteCount) {
