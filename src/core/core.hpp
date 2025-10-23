@@ -1,19 +1,28 @@
 #pragma once
 
-#include "cpu.hpp"
+#include "types.hpp"
+
+#include "apu.hpp"
 #include "bus.hpp"
+#include "cart.hpp"
+#include "composite.hpp"
+#include "controller.hpp"
+#include "cpu.hpp"
+#include "ppu.hpp"
+#include "window.hpp"
 
 
-/*
-the core initializes and manages all the components
-*/
+// the core initializes and manages all the components
 
 
 class Core {
 public:
-    CPU cpu;
-    Bus bus;
-
+	CPU cpu;
+	Bus bus;
+	PPU ppu;
+	Composite comp;
+	APU apu;
+	Window window;
 
     Core();
 
