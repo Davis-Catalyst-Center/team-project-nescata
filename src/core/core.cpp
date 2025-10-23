@@ -1,7 +1,7 @@
 #include "core.hpp"
 
 Core::Core() : cpu(bus) {
-    // cpu is initialized via member initializer list
+	
 }
 
 void Core::run() {

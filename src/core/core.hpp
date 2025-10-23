@@ -1,7 +1,7 @@
 #pragma once
 
-#include "components/cpu.hpp"
-#include "components/bus.hpp"
+#include "cpu.hpp"
+#include "bus.hpp"
 
 
 /*
@@ -11,8 +11,9 @@ the core initializes and manages all the components
 
 class Core {
 public:
-    Bus bus;
     CPU cpu;
+    Bus bus;
+
 
     Core();
 
