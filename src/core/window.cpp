@@ -1,6 +1,6 @@
 #include "window.hpp"
 
-void StartWindow(){
+void Window::StartWindow(){
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         std::cout << "Failed to initialize the SDL2 library\n";
