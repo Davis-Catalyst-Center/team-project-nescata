@@ -1,7 +1,6 @@
 #include "core.hpp"
 
-Core::Core() : cpu(bus) {
-	
+Core::Core() : cpu(bus), window(){
 }
 
 void Core::run() {

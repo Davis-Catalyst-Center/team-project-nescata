@@ -29,23 +29,22 @@ void Window::StartWindow(){
 
     SDL_UpdateWindowSurface(window);
 
-    SDL_Delay(5000);
-    bool keep_window_open = true;
-    
-    while(keep_window_open)
-    {
-        SDL_Event e;
-        while(SDL_PollEvent(&e) > 0)
-        {
-            switch(e.type)
-            {
-                case SDL_QUIT:
-                    keep_window_open = false;
-                    break;
-            }
+}
 
-            
+bool Window::tick(){
+    
+    SDL_Event e;
+    while(SDL_PollEvent(&e) > 0)
+    {
+        switch(e.type)
+        {
+            case SDL_QUIT:
+                keep_window_open = false;
+                break;
         }
-        SDL_UpdateWindowSurface(window);
+
+        
     }
+    SDL_UpdateWindowSurface(window);
+    return keep_window_open;
 }
