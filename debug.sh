@@ -1,1 +1,1 @@
-g++ -g src/*.cpp src/core/*.cpp src/core/components/*.cpp -o main.out && echo "compiled" && gdb ./main.out
+g++ -g src/*.cpp src/core/*.cpp -o main.out -lSDL2 && echo "compiled" && gdb ./main.out

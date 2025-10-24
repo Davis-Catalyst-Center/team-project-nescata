@@ -1,17 +1,20 @@
 #include "window.hpp"
 
-void Window::StartWindow(){
+int Window::StartWindow(){
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         std::cout << "Failed to initialize the SDL2 library\n";
         return -1;
     }
 
-    SDL_Window *window = SDL_CreateWindow("SDL2 Window",
-                                          SDL_WINDOWPOS_CENTERED,
-                                          SDL_WINDOWPOS_CENTERED,
-                                          680, 480,
-                                          0);
+
+    window = SDL_CreateWindow(
+        "nescata",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        256, 224,
+        0
+    );
 
     if(!window)
     {
@@ -19,7 +22,7 @@ void Window::StartWindow(){
         return -1;
     }
 
-    SDL_Surface *window_surface = SDL_GetWindowSurface(window);
+    window_surface = SDL_GetWindowSurface(window);
 
     if(!window_surface)
     {
@@ -28,7 +31,7 @@ void Window::StartWindow(){
     }
 
     SDL_UpdateWindowSurface(window);
-
+    return 0;
 }
 
 bool Window::tick(){
@@ -48,3 +51,4 @@ bool Window::tick(){
     SDL_UpdateWindowSurface(window);
     return keep_window_open;
 }
+
