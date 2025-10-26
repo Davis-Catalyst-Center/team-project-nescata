@@ -23,12 +23,20 @@ public:
 	Composite comp;
 	APU apu;
 	Window window;
+	Controller controller1;
+	Controller controller2;
 
     Core();
 
     void run();
 	void reset();
 	void fullReset();
+
+	void handleWindowEvents();
+	void handleKeyboardEvent(SDL_KeyboardEvent keyEvent);
+
     void loadCart(Cart* cart);
     void unloadCart();
+	void setController1(ControllerType type);
+	void setController2(ControllerType type);
 };

@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 
+#include "types.hpp"
 
 class Window {
     private:
@@ -14,6 +15,13 @@ class Window {
         StartWindow();
     };
     int StartWindow();
-    bool tick();
-    
+	bool pollEvent(SDL_Event* event);
+    void updateSurface();
+    void closeWindow();
+
+	void waitForVsync();
+
+	// Drawing functions
+
+	void fillRect(int x, int y, int w, int h, uint32 color);
 };

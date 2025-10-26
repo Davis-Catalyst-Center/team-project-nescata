@@ -677,12 +677,6 @@ void CPU::powerOn() {
 	jammed = false;
 }
 
-void CPU::run() {
-	while (true) {
-		clock();
-	}
-}
-
 void CPU::clock() {
 	// Capture program counter at instruction start so log lines show the
 	// correct address and bytes for the instruction executed.
