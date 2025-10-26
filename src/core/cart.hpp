@@ -20,10 +20,6 @@ public:
     Cart(std::string filename);
     ~Cart();
 
-    // Disallow copying of Cart objects
-    Cart(const Cart&) = delete;
-    Cart& operator=(const Cart&) = delete;
-
     uint8 read(uint16 addr);
     void write(uint16 addr, uint8 val);
 

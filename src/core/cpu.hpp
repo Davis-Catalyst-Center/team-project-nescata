@@ -130,6 +130,7 @@ public:
 
     CPU(Bus& busRef);
     void reset();
+	void powerOn();
 
     // After calling getOperandAddress, this returns whether the addressing
     // calculation crossed a 0xFF->0x00 page boundary (used for extra cycle

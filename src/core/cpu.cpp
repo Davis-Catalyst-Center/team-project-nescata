@@ -658,11 +658,23 @@ void CPU::reset() {
 	a = 0;
 	x = 0;
 	y = 0;
-	pc = 0xc000; // readMem16(RESET_VECTOR);
-	s = 0xFD;
+	readMem16(RESET_VECTOR);
+	s -= 3;
+	p.I = 1;
+
+	cycles = 7;
+}
+
+void CPU::powerOn() {
+	a = 0;
+	x = 0;
+	y = 0;
+	pc = readMem16(RESET_VECTOR);
+	s = 0;
 	p.raw = 0b00100100;
 
 	cycles = 7;
+	jammed = false;
 }
 
 void CPU::run() {

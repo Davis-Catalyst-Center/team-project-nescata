@@ -27,6 +27,8 @@ public:
     Core();
 
     void run();
+	void reset();
+	void fullReset();
     void loadCart(Cart* cart);
     void unloadCart();
 };

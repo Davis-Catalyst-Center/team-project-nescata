@@ -4,8 +4,17 @@ Core::Core() : cpu(bus), window(){
 }
 
 void Core::run() {
-    cpu.reset();
+    cpu.powerOn();
     cpu.run();
+}
+
+void Core::reset() {
+	cpu.reset();
+}
+
+void Core::fullReset() {
+	bus.unloadCart();
+	cpu.powerOn();
 }
 
 void Core::loadCart(Cart* cart) {

@@ -72,6 +72,7 @@ Cart::~Cart() {
 }
 
 uint8 Cart::read(uint16 addr) {
+	if (blank) return 0;
     if (mapper) {
 		if (addr >= 0x8000 && addr <= 0xFFFF) {
 			return mapper->readRom(addr);
@@ -82,6 +83,7 @@ uint8 Cart::read(uint16 addr) {
 }
 
 void Cart::write(uint16 addr, uint8 val) {
+	if (blank) return;
     if (mapper) {
 		if (addr >= 0x8000 && addr <= 0xFFFF) {
 			mapper->writeRom(addr, val);

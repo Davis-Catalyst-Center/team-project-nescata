@@ -3,9 +3,14 @@
 
 
 
-int main() {
+int main(int argc, char* argv[]) {
     Core core;
-    Cart cart("roms/nestest.nes");
+    Cart cart;
+    if (argc == 1) {
+		cart = Cart();
+	} else {
+		cart = Cart(argv[1]);
+	}
 
     core.loadCart(&cart);
     core.run();

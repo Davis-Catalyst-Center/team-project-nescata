@@ -1,1 +1,2 @@
-g++ -g src/*.cpp src/core/*.cpp -o main.out -lSDL2 && echo "compiled" && gdb ./main.out
+g++ -std=c++17 -g -o main.out src/*.cpp src/*/*.cpp -lSDL2 && \
+echo "compiled" && gdb ./main.out
