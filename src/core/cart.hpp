@@ -9,22 +9,45 @@
 #include "mappers/mapper.hpp"
 #include "types.hpp"
 
+enum MirroringType {
+	HORIZONTAL,
+	VERTICAL,
+	FOUR_SCREEN
+};
+
 class Cart {
 public:
 	bool blank = true; // is the cart empty?
 
 	Mapper* mapper = nullptr;
 
-    uint8 header[16];
-    Cart();
-    Cart(std::string filename);
-    ~Cart();
+	uint8 header[16];
+	int romBankCount = 0;
+	int romSize = 0;
+	int chrBankCount = 0;
+	int chrSize = 0;
 
-    uint8 read(uint16 addr);
-    void write(uint16 addr, uint8 val);
+	int mapperID = 0;
+
+	bool fourScreen = false;
+	bool hasTrainer = false;
+	bool batteryBacked = false;
+	bool verticalMirroring = false;
+
+	MirroringType mirroring = HORIZONTAL;
+
+	int iNESVersion = 1;
+
+	int trainerSize = 0;
+	
+	Cart();
+	Cart(std::string filename);
+
+	uint8 read(uint16 addr);
+	void write(uint16 addr, uint8 val);
 
 private:
 	void pickMapper(int mapperID,
-		const std::vector<std::array<uint8, 0x4000>>& prgBanks,
-		const std::vector<std::array<uint8, 0x2000>>& chrBanks);
+		std::vector<std::array<uint8, 0x4000>>* prgBanks,
+		std::vector<std::array<uint8, 0x2000>>* chrBanks);
 };

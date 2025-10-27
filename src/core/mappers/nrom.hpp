@@ -2,22 +2,22 @@
 #include "../types.hpp"
 #include "mapper.hpp"
 
-class Mapper0 : public Mapper {
+class NROM : public Mapper {
 public:
-	Mapper0(std::vector<std::array<uint8, 0x4000>> rom_banks,
-			std::vector<std::array<uint8, 0x2000>> chr_banks) {
-		prgBankCount = rom_banks.size();
-		chrBankCount = chr_banks.size();
+	NROM(
+		std::vector<std::array<uint8, 0x4000>>* prgBanksRef,
+		std::vector<std::array<uint8, 0x2000>>* chrBanksRef) {
+		prgBankCount = prgBanksRef->size();
+		chrBankCount = chrBanksRef->size();
 		mapperID = 0;
+		prgBanks.push_back((*prgBanksRef)[0]);
 		if (prgBankCount == 1) {
-			prgBanks.push_back(rom_banks[0]);
-			prgBanks.push_back(rom_banks[0]);
+			prgBanks.push_back((*prgBanksRef)[0]);
 		} else if (prgBankCount == 2) {
-			prgBanks.push_back(rom_banks[0]);
-			prgBanks.push_back(rom_banks[1]);
+			prgBanks.push_back((*prgBanksRef)[1]);
 		}
 		if (chrBankCount == 1) {
-			chrBanks.push_back(chr_banks[0]);
+			chrBanks.push_back((*chrBanksRef)[0]);
 		} else {
 			chrBanks.push_back(std::array<uint8, 0x2000>{});
 		}

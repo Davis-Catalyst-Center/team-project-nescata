@@ -1,6 +1,6 @@
 #include "cart.hpp"
 
-#include "mappers/mapper0.hpp"
+#include "mappers/nrom.hpp"
 
 
 Cart::Cart() {
@@ -11,66 +11,86 @@ Cart::Cart(std::string filename) {
 	blank = true; // Default to blank until successfully loaded
 	mapper = nullptr;
 
-    std::ifstream gameFile(filename, std::ios::binary);
-	if (!gameFile.is_open()) {
-		std::cerr << "Failed to open file: " << filename << std::endl;
+	// Load ROM file
+	FILE* romFile = fopen(filename.c_str(), "rb");
+	if (!romFile) {
+		std::cerr << "Failed to open ROM file: " << filename << std::endl;
 		return;
 	}
 
-	// Read the 16-byte header
-    gameFile.read(reinterpret_cast<char*>(header), 16);
+	// Read header
+	fread(header, sizeof(uint8), 16, romFile);
 
-    if (header[0] != 'N' || header[1] != 'E' || header[2] != 'S' || header[3] != 0x1A) {
-        std::cerr << "Not a valid iNES file!" << std::endl;
-        return;
-    }
-
-	// Get ROM sizes and mapper ID from the header
-	int prgBanksCount = header[4];
-	int chrBanksCount = header[5];
-
-	int mapperID = (header[6] >> 4) | (header[7] & 0xF0);
-
-
-	// Skip trainer data if present (512 bytes)
-	if (header[6] & 0x04) {
-		gameFile.seekg(512, std::ios::cur);
+	// Verify NES file format
+	if (header[0] != 'N' || header[1] != 'E' || header[2] != 'S' || header[3] != 0x1A) {
+		std::cerr << "Invalid NES file format: " << filename << std::endl;
+		fclose(romFile);
+		return;
 	}
 
-	// Load PRG ROM banks (16KB each)
+	// Parse header information
+	romBankCount = header[4];
+	romSize = romBankCount * 0x4000; // 16KB units
+	chrBankCount = header[5];
+	chrSize = chrBankCount * 0x2000; // 8KB units
+
+	uint8 control1 = header[6];
+	uint8 control2 = header[7];
+
+	mapperID = (control1 >> 4) | (control2 & 0xF0);
+
+	fourScreen        = (control1 & 0b00001000) != 0;
+	hasTrainer        = (control1 & 0b00000100) != 0;
+	batteryBacked     = (control1 & 0b00000010) != 0;
+	verticalMirroring = (control1 & 0b00000001) != 0;
+
+	if (fourScreen) {
+		mirroring = FOUR_SCREEN;
+	} else if (verticalMirroring) {
+		mirroring = VERTICAL;
+	} else {
+		mirroring = HORIZONTAL;
+	}
+
+	iNESVersion = (control2 >> 2) & 0b00000011;
+	trainerSize = hasTrainer ? 512 : 0;
+
+	// Skip trainer if present
+	if (hasTrainer) {
+		fseek(romFile, 512, SEEK_CUR);
+	}
+
+	// Load PRG ROM banks
 	std::vector<std::array<uint8, 0x4000>> prgData;
-	prgData.resize(prgBanksCount);
-	for (int i = 0; i < prgBanksCount; i++) {
-		std::array<uint8, 0x4000> bank;
-		gameFile.read(reinterpret_cast<char*>(bank.data()), 0x4000);
-		prgData[i] = bank;
+	for (int i = 0; i < romBankCount; ++i) {
+		std::array<uint8, 0x4000> bank{};
+		fread(bank.data(), sizeof(uint8), 0x4000, romFile);
+		prgData.push_back(bank);
 	}
-
-	// Load CHR ROM banks (8KB each)
+	// Load CHR ROM banks
 	std::vector<std::array<uint8, 0x2000>> chrData;
-	chrData.resize(chrBanksCount);
-	for (int i = 0; i < chrBanksCount; i++) {
-		std::array<uint8, 0x2000> bank;
-		gameFile.read(reinterpret_cast<char*>(bank.data()), 0x2000);
-		chrData[i] = bank;
+	if (chrBankCount == 0) {
+		// Some carts have CHR RAM instead of ROM; allocate 8KB of CHR RAM
+		chrData.push_back(std::array<uint8, 0x2000>{});
+	} else {
+		for (int i = 0; i < chrBankCount; ++i) {
+			std::array<uint8, 0x2000> bank{};
+			fread(bank.data(), sizeof(uint8), 0x2000, romFile);
+			chrData.push_back(bank);
+		}
 	}
 
-	gameFile.close();
+	fclose(romFile);
 
 	pickMapper(
 		mapperID,
-		prgData,
-		chrData
+		&prgData,
+		&chrData
 	);
 
 	blank = false;
 
 	std::cout << "loaded cart with mapper " << mapperID << "\n";
-}
-
-Cart::~Cart() {
-    delete mapper;
-	mapper = nullptr;
 }
 
 uint8 Cart::read(uint16 addr) {
@@ -89,11 +109,11 @@ void Cart::write(uint16 addr, uint8 val) {
 }
 
 void Cart::pickMapper(int mapperID,
-    const std::vector<std::array<uint8, 0x4000>>& prgBanks,
-    const std::vector<std::array<uint8, 0x2000>>& chrBanks) {
+    std::vector<std::array<uint8, 0x4000>>* prgBanks,
+    std::vector<std::array<uint8, 0x2000>>* chrBanks) {
     switch (mapperID) {
         case 0:
-            mapper = new Mapper0(prgBanks, chrBanks);
+            mapper = new NROM(prgBanks, chrBanks);
             break;
         default:
             std::cerr << "Mapper " << static_cast<int>(mapperID) << " not supported!" << std::endl;

@@ -59,6 +59,17 @@ void Bus::write(uint16 addr, uint8 val) {
 }
 
 
+void Bus::clock(int cycles) {
+	// cpu sends in cycles passed * 12 to get master clock cycles
+	if (ppu) {
+		ppu->step(cycles / 3); // PPU runs at 3x CPU clock rate
+	}
+	if (apu) {
+		apu->step(cycles / 12); // APU runs at CPU clock rate
+	}
+}
+
+
 void Bus::connectAPU(APU* apuRef) {
 	apu = apuRef;
 }

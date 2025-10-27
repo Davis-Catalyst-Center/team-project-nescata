@@ -842,10 +842,17 @@ void CPU::clock() {
 		logInstruction(instrPc, opcode, opcodeBytes, byteCount);
 	}
 
+	long int prev_cycles = cycles;
 	// Add base cycles for this instruction
 	cycles += OPCODE_CYCLES_MAP[opcode];
 
 	runInstruction(opcode);
+	int diff_cycles = cycles - prev_cycles;
+
+	if (bus) {
+		bus->clock(diff_cycles * 12);
+	}
+	
 }
 
 void CPU::logInstruction(uint16 instrPc, uint8 opcode, const uint8* opcodeBytes, size_t byteCount) {
