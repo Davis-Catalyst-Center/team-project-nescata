@@ -21,11 +21,11 @@ union StandardControllerState {
 class StandardStateHandler : public ControllerStateHandler {
 private:
 	StandardControllerState state;
-	bool strobe;
-	int readIndex;
+	bool strobe = false;
+	int readIndex = 1;
 public:
-	StandardStateHandler() : strobe(false), readIndex(0) {
-		state.raw = 0;
+	StandardStateHandler() {
+
 	}
 
 	void write(uint8 value) {

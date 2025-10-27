@@ -24,7 +24,7 @@ union StatusRegister {
 
 
 class CPU {
-public:
+private:
     // CONSTANTS
 
 
@@ -115,28 +115,21 @@ public:
     uint8 s;          // Stack Pointer
     StatusRegister p; // Status Register
 
-    Bus& bus;
+    Bus* bus;
 
     // STATE
 	bool jammed = false;
 
     long int cycles;
-    // Instruction logging toggle. When true, each executed instruction will be
-    // appended to `cpu.log` in a compact single-line format for debugging.
     bool enableCpuLog = false;
 
 	bool pageCrossed;
 
+public:
 
-    CPU(Bus& bus);
+    CPU();
     void reset();
 	void powerOn();
-
-    // After calling getOperandAddress, this returns whether the addressing
-    // calculation crossed a 0xFF->0x00 page boundary (used for extra cycle
-    // accounting). This replaces the previous out-parameter pointer.
-    bool getLastPageCrossed() const;
-
 
     // MEMORY INTERFACING
 
@@ -152,8 +145,18 @@ public:
     void push16(uint16 val);
 
 
+	// getters and setters
+
+	bool isJammed();
+	void setJammed(bool jammed);
+	long int getCycles();
+	void enableLogging(bool enable);
+	
+	void connectBus(Bus* busRef);
+	void disconnectBus();
 
 private:
+
 
     // helpers
 

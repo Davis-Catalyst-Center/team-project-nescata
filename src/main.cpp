@@ -5,14 +5,10 @@
 
 int main(int argc, char* argv[]) {
     Core core;
-    Cart cart;
-    if (argc == 1) {
-		cart = Cart();
-	} else {
-		cart = Cart(argv[1]);
-	}
+    Cart cart(argc > 1 ? argv[1] : "roms/nestest.nes");
 
-    core.loadCart(&cart);
+    core.connectCart(&cart);
+	core.setController1(STANDARD);
     core.run();
     return 0;
 }

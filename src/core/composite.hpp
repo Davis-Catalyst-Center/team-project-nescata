@@ -12,6 +12,8 @@ private:
 public:
 	Composite();
 
+	uint32* renderFrame();
+
 	void connectPPU(PPU* ppu);
 	void disconnectPPU();
 	void connectCart(Cart* cart);

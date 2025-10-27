@@ -1,5 +1,8 @@
 #pragma once
 
+#include <iostream>
+#include <SDL2/SDL.h>
+
 #include "types.hpp"
 
 #include "apu.hpp"
@@ -17,14 +20,16 @@
 
 class Core {
 public:
-	CPU cpu;
 	Bus bus;
+	CPU cpu;
 	PPU ppu;
 	Composite comp;
 	APU apu;
 	Window window;
 	Controller controller1;
 	Controller controller2;
+
+	bool enableWindow = true;
 
     Core();
 
@@ -35,8 +40,8 @@ public:
 	void handleWindowEvents();
 	void handleKeyboardEvent(SDL_KeyboardEvent keyEvent);
 
-    void loadCart(Cart* cart);
-    void unloadCart();
+    void connectCart(Cart* cart);
+    void disconnectCart();
 	void setController1(ControllerType type);
 	void setController2(ControllerType type);
 };

@@ -1,18 +1,35 @@
 #include "core.hpp"
 
-Core::Core() : cpu(bus), window(), comp() {
+Core::Core() {
+	cpu.connectBus(&bus);
+	bus.connectAPU(&apu);
+	bus.connectPPU(&ppu);
 	comp.connectPPU(&ppu);
+	bus.connectController1(&controller1);
+	bus.connectController2(&controller2);
 }
 
 void Core::run() {
+	if (enableWindow) {
+		if (window.StartWindow() != 0) {
+			std::cerr << "Failed to start window!" << std::endl;
+			return;
+		}
+	}
     cpu.powerOn();
-	int i = 0;
+	long int lastCycles = 0;
     while (true) {
 		cpu.clock();
 		// temporary to give window an update chance
-		if (i++ % 10000 == 0) {
-			window.updateSurface();
+		if (cpu.getCycles() - lastCycles >= 29781) {
+			uint32* frameBuffer = comp.renderFrame();
+			if (frameBuffer) {
+				window.drawBuffer(frameBuffer);
+				free(frameBuffer);
+			}
 			handleWindowEvents();
+			window.updateSurface();
+			lastCycles += 29781;
 		}
 	}
 }
@@ -22,7 +39,6 @@ void Core::reset() {
 }
 
 void Core::fullReset() {
-	bus.unloadCart();
 	cpu.powerOn();
 }
 
@@ -85,8 +101,8 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 			break;
 		case SDLK_t: // test
 			if (pressed) {
-				void* buffer = window.makeBufferFromImage("test.bmp");
-				window.drawBuffer(0, 0, (uint32*)buffer);
+				uint32* buffer = window.makeBufferFromImage("test.bmp");
+				window.drawBuffer(buffer);
 			}
 			break;
 		default:
@@ -94,12 +110,14 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 	}
 }
 
-void Core::loadCart(Cart* cart) {
-    bus.loadCart(cart);
+void Core::connectCart(Cart* cart) {
+    bus.connectCart(cart);
+	comp.connectCart(cart);
 }
 
-void Core::unloadCart() {
-    bus.unloadCart();
+void Core::disconnectCart() {
+    bus.disconnectCart();
+	comp.disconnectCart();
 }
 
 void Core::setController1(ControllerType type) {

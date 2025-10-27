@@ -6,7 +6,7 @@
 
 // FUNCTIONS
 
-CPU::CPU(Bus& busRef) : bus(busRef) {
+CPU::CPU() {
 	// clear previous CPU instruction log
 	FILE* f = fopen("cpu.log", "w");
 	if (f) fclose(f);
@@ -15,11 +15,16 @@ CPU::CPU(Bus& busRef) : bus(busRef) {
 
 
 uint8 CPU::readMem(uint16 addr) {
-	return bus.read(addr);
+	if (bus) {
+		return bus->read(addr);
+	}
+	return 0;
 }
 
 void CPU::writeMem(uint16 addr, uint8 val) {
-	bus.write(addr, val);
+	if (bus) {
+		bus->write(addr, val);
+	}
 }
 
 uint16 CPU::readMem16(uint16 addr) {
@@ -59,8 +64,28 @@ void CPU::push16(uint16 val) {
 }
 
 
+// getters and setters
+
+bool CPU::isJammed() {
+	return jammed;
+}
+
+long int CPU::getCycles() {
+	return cycles;
+}
+
+void CPU::enableLogging(bool enable) {
+	enableCpuLog = enable;
+}
 
 
+void CPU::connectBus(Bus* busRef) {
+	bus = busRef;
+}
+
+void CPU::disconnectBus() {
+	bus = nullptr;
+}
 
 uint16 CPU::getOperandAddress(AddressingMode mode) {
 	uint16 addr;
@@ -253,9 +278,17 @@ void CPU::op_ASL(AddressingMode mode) {
     }
 }
 
-void CPU::op_BCC(AddressingMode mode) { _branch(p.C == 0); }
-void CPU::op_BCS(AddressingMode mode) { _branch(p.C == 1); }
-void CPU::op_BEQ(AddressingMode mode) { _branch(p.Z == 1); }
+void CPU::op_BCC(AddressingMode mode) {
+	_branch(p.C == 0);
+}
+
+void CPU::op_BCS(AddressingMode mode) {
+	_branch(p.C == 1);
+}
+
+void CPU::op_BEQ(AddressingMode mode) {
+	_branch(p.Z == 1);
+}
 
 void CPU::op_BIT(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
@@ -265,21 +298,46 @@ void CPU::op_BIT(AddressingMode mode) {
 	p.V = (val & 0x40) != 0;
 }
 
-void CPU::op_BNE(AddressingMode mode) { _branch(p.Z == 0); }
-void CPU::op_BMI(AddressingMode mode) { _branch(p.N == 1); }
-void CPU::op_BPL(AddressingMode mode) { _branch(p.N == 0); }
+void CPU::op_BNE(AddressingMode mode) {
+	_branch(p.Z == 0);
+}
+
+void CPU::op_BMI(AddressingMode mode) {
+	_branch(p.N == 1);
+}
+
+void CPU::op_BPL(AddressingMode mode) {
+	_branch(p.N == 0);
+}
 
 void CPU::op_BRK(AddressingMode mode) {
 	pc++;
 	_interrupt(VECTOR_BRK);
 }
 
-void CPU::op_BVS(AddressingMode mode) { _branch(p.V == 1); }
-void CPU::op_BVC(AddressingMode mode) { _branch(p.V == 0); }
-void CPU::op_CLC(AddressingMode mode) { p.C = 0; }
-void CPU::op_CLD(AddressingMode mode) { p.D = 0; }
-void CPU::op_CLI(AddressingMode mode) { p.I = 0; }
-void CPU::op_CLV(AddressingMode mode) { p.V = 0; }
+void CPU::op_BVS(AddressingMode mode) {
+	_branch(p.V == 1);
+}
+
+void CPU::op_BVC(AddressingMode mode) {
+	_branch(p.V == 0);
+}
+
+void CPU::op_CLC(AddressingMode mode) {
+	p.C = 0;
+}
+
+void CPU::op_CLD(AddressingMode mode) {
+	p.D = 0;
+}
+
+void CPU::op_CLI(AddressingMode mode) {
+	p.I = 0;
+}
+
+void CPU::op_CLV(AddressingMode mode) {
+	p.V = 0;
+}
 
 void CPU::op_CMP(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
@@ -306,8 +364,15 @@ void CPU::op_DEC(AddressingMode mode) {
 	_setZNFlags(val);
 }
 
-void CPU::op_DEX(AddressingMode mode) { x--; _setZNFlags(x); }
-void CPU::op_DEY(AddressingMode mode) { y--; _setZNFlags(y); }
+void CPU::op_DEX(AddressingMode mode) {
+	x--;
+	_setZNFlags(x);
+}
+
+void CPU::op_DEY(AddressingMode mode) {
+	y--;
+	_setZNFlags(y);
+}
 
 void CPU::op_EOR(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
@@ -325,8 +390,15 @@ void CPU::op_INC(AddressingMode mode) {
 	_setZNFlags(val);
 }
 
-void CPU::op_INX(AddressingMode mode) { x++; _setZNFlags(x); }
-void CPU::op_INY(AddressingMode mode) { y++; _setZNFlags(y); }
+void CPU::op_INX(AddressingMode mode) {
+	x++;
+	_setZNFlags(x);
+}
+
+void CPU::op_INY(AddressingMode mode) {
+	y++;
+	_setZNFlags(y);
+}
 
 void CPU::op_JMP(AddressingMode mode) {
 	pc = getOperandAddress(mode);
@@ -401,10 +473,23 @@ void CPU::op_ORA(AddressingMode mode) {
     }
 }
 
-void CPU::op_PHA(AddressingMode mode) { push(a); }
-void CPU::op_PHP(AddressingMode mode) { push(_getStatus(true)); }
-void CPU::op_PLA(AddressingMode mode) { a = pull(); _setZNFlags(a); }
-void CPU::op_PLP(AddressingMode mode) { _setStatus(pull()); p.U = 1; }
+void CPU::op_PHA(AddressingMode mode) {
+	push(a);
+}
+
+void CPU::op_PHP(AddressingMode mode) {
+	push(_getStatus(true));
+}
+
+void CPU::op_PLA(AddressingMode mode) {
+	a = pull();
+	_setZNFlags(a);
+}
+
+void CPU::op_PLP(AddressingMode mode) {
+	_setStatus(pull());
+	p.U = 1;
+}
 
 void CPU::op_ROL(AddressingMode mode) {
 	uint8 carry = p.C;
@@ -455,21 +540,58 @@ void CPU::op_SBC(AddressingMode mode) {
     }
 }
 
-void CPU::op_SEC(AddressingMode mode) { p.C = 1; }
-void CPU::op_SED(AddressingMode mode) { p.D = 1; }
-void CPU::op_SEI(AddressingMode mode) { p.I = 1; }
+void CPU::op_SEC(AddressingMode mode) {
+	p.C = 1;
+}
 
-void CPU::op_STA(AddressingMode mode) { writeMem(getOperandAddress(mode), a); }
-void CPU::op_STX(AddressingMode mode) { writeMem(getOperandAddress(mode), x); }
-void CPU::op_STY(AddressingMode mode) { writeMem(getOperandAddress(mode), y); }
-void CPU::op_TAX(AddressingMode mode) { x = a; _setZNFlags(x); }
-void CPU::op_TAY(AddressingMode mode) { y = a; _setZNFlags(y); }
-void CPU::op_TSX(AddressingMode mode) { x = s; _setZNFlags(x); }
-void CPU::op_TXA(AddressingMode mode) { a = x; _setZNFlags(a); }
-void CPU::op_TXS(AddressingMode mode) { s = x; }
-void CPU::op_TYA(AddressingMode mode) { a = y; _setZNFlags(a); }
+void CPU::op_SED(AddressingMode mode) {
+	p.D = 1;
+}
 
-// in cpu.cpp
+void CPU::op_SEI(AddressingMode mode) {
+	p.I = 1;
+}
+
+void CPU::op_STA(AddressingMode mode) {
+	writeMem(getOperandAddress(mode), a);
+}
+
+void CPU::op_STX(AddressingMode mode) {
+	writeMem(getOperandAddress(mode), x);
+}
+
+void CPU::op_STY(AddressingMode mode) {
+	writeMem(getOperandAddress(mode), y);
+}
+
+void CPU::op_TAX(AddressingMode mode) {
+	x = a;
+	_setZNFlags(x);
+}
+
+void CPU::op_TAY(AddressingMode mode) {
+	y = a;
+	_setZNFlags(y);
+}
+
+void CPU::op_TSX(AddressingMode mode) {
+	x = s;
+	_setZNFlags(x);
+}
+
+void CPU::op_TXA(AddressingMode mode) {
+	a = x;
+	_setZNFlags(a);
+}
+
+void CPU::op_TXS(AddressingMode mode) {
+	s = x;
+}
+
+void CPU::op_TYA(AddressingMode mode) {
+	a = y;
+	_setZNFlags(a);
+}
 
 // UNOFFICIAL OPCODES
 
@@ -676,6 +798,10 @@ void CPU::powerOn() {
 }
 
 void CPU::clock() {
+	// if jammed don't do anything
+	if (jammed) {
+		return;
+	}
 	// Capture program counter at instruction start so log lines show the
 	// correct address and bytes for the instruction executed.
 	uint16 instrPc = pc;

@@ -12,7 +12,7 @@ class Window {
         SDL_Surface *window_surface = nullptr;
     public:
     Window() {
-        StartWindow();
+
     };
     int StartWindow();
 	bool pollEvent(SDL_Event* event);
@@ -26,7 +26,7 @@ class Window {
 	void fillRect(int x, int y, int w, int h, uint32 color);
 	void fillScreen(uint32 color);
 	void drawPixel(int x, int y, uint32 color);
-	void drawBuffer(int x, int y, uint32* buffer);
+	void drawBuffer(uint32* buffer);
 
 	// just to test
 	uint32* makeBufferFromImage(const char* filepath);

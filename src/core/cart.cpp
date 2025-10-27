@@ -31,7 +31,6 @@ Cart::Cart(std::string filename) {
 
 	int mapperID = (header[6] >> 4) | (header[7] & 0xF0);
 
-	std::cout << mapperID << "\n";
 
 	// Skip trainer data if present (512 bytes)
 	if (header[6] & 0x04) {
@@ -65,6 +64,8 @@ Cart::Cart(std::string filename) {
 	);
 
 	blank = false;
+
+	std::cout << "loaded cart with mapper " << mapperID << "\n";
 }
 
 Cart::~Cart() {

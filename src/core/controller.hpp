@@ -13,8 +13,10 @@ enum ControllerType {
 class Controller {
 private:
 	ControllerStateHandler* stateHandler;
+	ControllerType type = DISCONNECTED;
 public:
-	Controller(ControllerType type = DISCONNECTED) {
+	Controller(ControllerType controllerType = DISCONNECTED) {
+		type = controllerType;
 		switch (type) {
 			case DISCONNECTED:
 				stateHandler = nullptr;
@@ -23,11 +25,6 @@ public:
 			default:
 				stateHandler = new StandardStateHandler();
 				break;
-		}
-	}
-	~Controller() {
-		if (stateHandler) {
-			delete stateHandler;
 		}
 	}
 	void write(uint8 value) {
@@ -42,9 +39,14 @@ public:
 		return 0;
 	}
 	void setButtonState(uint8 buttonMask, bool pressed) {
-		StandardStateHandler* standardHandler = dynamic_cast<StandardStateHandler*>(stateHandler);
-		if (standardHandler) {
-			standardHandler->setButtonState(buttonMask, pressed);
+		switch (type) {
+			case DISCONNECTED:
+				break;
+			case STANDARD:
+				stateHandler->setButtonState(buttonMask, pressed);
+				break;
+			default:
+				break;
 		}
 	}
 };

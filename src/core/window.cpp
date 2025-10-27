@@ -72,13 +72,13 @@ void Window::drawPixel(int x, int y, uint32 color) {
 	SDL_FillRect(window_surface, &rect, color);
 }
 
-void Window::drawBuffer(int x, int y, uint32* buffer) {
+void Window::drawBuffer(uint32* buffer) {
     if (!buffer) {
         return;
     }
     SDL_Rect rect;
-    rect.x = x;
-    rect.y = y;
+    rect.x = 0;
+    rect.y = 0;
     rect.w = 256;
     rect.h = 224;
 
