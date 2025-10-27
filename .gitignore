@@ -1,2 +1,3 @@
-# Ignore all NES files that start with .
 .*.nes
+.vscode/
+build/

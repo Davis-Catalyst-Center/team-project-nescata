@@ -99,29 +99,3 @@ void Window::drawBuffer(uint32* buffer) {
         SDL_FreeSurface(surface);
     }
 }
-
-uint32* Window::makeBufferFromImage(const char* filepath) {
-    SDL_Surface* loadedImage = SDL_LoadBMP(filepath);
-    if (!loadedImage) {
-        std::cout << "Failed to load image: " << SDL_GetError() << "\n";
-        return nullptr;
-    }
-
-    SDL_Surface* formattedSurface = SDL_CreateRGBSurfaceWithFormat(0, 256, 224, 32, SDL_PIXELFORMAT_RGBA8888);
-    if (!formattedSurface) {
-        SDL_FreeSurface(loadedImage);
-        return nullptr;
-    }
-
-    SDL_BlitScaled(loadedImage, nullptr, formattedSurface, nullptr);
-    SDL_FreeSurface(loadedImage);
-
-    uint32* buffer = new uint32[256 * 224];
-
-    SDL_LockSurface(formattedSurface);
-    memcpy(buffer, formattedSurface->pixels, 256 * 224 * sizeof(uint32));
-    SDL_UnlockSurface(formattedSurface);
-
-    SDL_FreeSurface(formattedSurface);
-    return buffer;
-}

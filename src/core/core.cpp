@@ -99,12 +99,6 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 				exit(0);
 			}
 			break;
-		case SDLK_t: // test
-			if (pressed) {
-				uint32* buffer = window.makeBufferFromImage("test.bmp");
-				window.drawBuffer(buffer);
-			}
-			break;
 		default:
 			break;
 	}
