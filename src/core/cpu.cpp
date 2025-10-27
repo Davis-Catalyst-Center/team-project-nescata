@@ -781,8 +781,6 @@ void CPU::reset() {
 	readMem16(RESET_VECTOR);
 	s -= 3;
 	p.I = 1;
-
-	cycles = 7;
 }
 
 void CPU::powerOn() {
