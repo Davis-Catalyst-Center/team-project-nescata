@@ -83,9 +83,10 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 				exit(0);
 			}
 			break;
-		case SDLK_t: // test drawRect
+		case SDLK_t: // test
 			if (pressed) {
-				window.fillRect(50, 50, 100, 100, 0x00FF00FF); // Magenta
+				void* buffer = window.makeBufferFromImage("test.bmp");
+				window.drawBuffer(0, 0, (uint32*)buffer);
 			}
 			break;
 		default:

@@ -24,4 +24,10 @@ class Window {
 	// Drawing functions
 
 	void fillRect(int x, int y, int w, int h, uint32 color);
+	void fillScreen(uint32 color);
+	void drawPixel(int x, int y, uint32 color);
+	void drawBuffer(int x, int y, uint32* buffer);
+
+	// just to test
+	uint32* makeBufferFromImage(const char* filepath);
 };
