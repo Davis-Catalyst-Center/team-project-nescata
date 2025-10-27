@@ -128,7 +128,7 @@ public:
 	bool pageCrossed;
 
 
-    CPU(Bus& busRef);
+    CPU(Bus& bus);
     void reset();
 	void powerOn();
 

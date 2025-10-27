@@ -4,8 +4,7 @@
 
 
 Cart::Cart() {
-	blank = true;
-	mapper = nullptr;
+
 }
 
 Cart::Cart(std::string filename) {
@@ -31,6 +30,8 @@ Cart::Cart(std::string filename) {
 	int chrBanksCount = header[5];
 
 	int mapperID = (header[6] >> 4) | (header[7] & 0xF0);
+
+	std::cout << mapperID << "\n";
 
 	// Skip trainer data if present (512 bytes)
 	if (header[6] & 0x04) {
@@ -72,23 +73,17 @@ Cart::~Cart() {
 }
 
 uint8 Cart::read(uint16 addr) {
-	if (blank) return 0;
-    if (mapper) {
-		if (addr >= 0x8000 && addr <= 0xFFFF) {
-			return mapper->readRom(addr);
-		}
-		// Add other address ranges (like PRG RAM at $6000-$7FFF) if the mapper supports them
+    if (mapper && !blank) {
+		return mapper->read(addr);
+		// leave handling up to mapper
 	}
 	return 0;
 }
 
 void Cart::write(uint16 addr, uint8 val) {
-	if (blank) return;
-    if (mapper) {
-		if (addr >= 0x8000 && addr <= 0xFFFF) {
-			mapper->writeRom(addr, val);
-		}
-		// Add other address ranges if the mapper supports them
+    if (mapper && !blank) {
+		mapper->write(addr, val);
+		// leave handling up to mapper
 	}
 }
 

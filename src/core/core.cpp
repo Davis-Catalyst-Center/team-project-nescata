@@ -1,6 +1,7 @@
 #include "core.hpp"
 
-Core::Core() : cpu(bus), window(){
+Core::Core() : cpu(bus), window(), comp() {
+	comp.connectPPU(&ppu);
 }
 
 void Core::run() {
@@ -14,7 +15,6 @@ void Core::run() {
 			handleWindowEvents();
 		}
 	}
-	
 }
 
 void Core::reset() {

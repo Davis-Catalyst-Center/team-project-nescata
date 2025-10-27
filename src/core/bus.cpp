@@ -16,6 +16,7 @@ uint8 Bus::read(uint16 addr) {
             return memory[addr & 0x7ff];
         case 0x2000 ... 0x3fff: // PPU registers (mirrored every 8 bytes)
             // Placeholder for PPU register read
+			// addr & 0x2007
             return 0;
         case 0x4000 ... 0x4017: // APU and I/O registers
             // Placeholder for APU and I/O register read

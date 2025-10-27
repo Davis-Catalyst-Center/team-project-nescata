@@ -10,8 +10,6 @@ CPU::CPU(Bus& busRef) : bus(busRef) {
 	// clear previous CPU instruction log
 	FILE* f = fopen("cpu.log", "w");
 	if (f) fclose(f);
-
-	reset();
 }
 
 

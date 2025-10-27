@@ -6,7 +6,7 @@
 
 class Bus {
 public:
-    uint8 memory [0x800]; // 2KB internal +memory
+    uint8 memory [0x800]; // 2KB internal memory
     
     Cart* cart = nullptr;
 

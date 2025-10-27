@@ -23,7 +23,7 @@ public:
 		}
 	}
 
-	uint8 readRom(uint16 addr) override {
+	uint8 read(uint16 addr) override {
 		if (addr >= 0x8000 && addr <= 0xBFFF) {
 			return prgBanks[0][addr - 0x8000];
 		} else if (addr >= 0xC000 && addr <= 0xFFFF) {
@@ -33,7 +33,7 @@ public:
 		}
 	}
 
-	void writeRom(uint16 addr, uint8 value) override {
+	void write(uint16 addr, uint8 value) override {
 		// Mapper 0 has no bank switching, so writes are ignored.
 	}
 

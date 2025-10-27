@@ -11,9 +11,9 @@
 
 class Cart {
 public:
-	bool blank; // is the cart empty?
+	bool blank = true; // is the cart empty?
 
-	Mapper* mapper;
+	Mapper* mapper = nullptr;
 
     uint8 header[16];
     Cart();
