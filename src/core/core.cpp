@@ -11,18 +11,22 @@ Core::Core() {
 }
 
 void Core::run() {
+
 	if (enableWindow) {
 		if (window.StartWindow() != 0) {
 			std::cerr << "Failed to start window!" << std::endl;
 			return;
 		}
+		
 	}
+
     cpu.powerOn();
 	long int lastCycles = 0;
     while (true) {
 		cpu.clock();
 		// temporary to give window an update chance
 		if (cpu.getCycles() - lastCycles >= 29781) {
+			
 			uint32* frameBuffer = comp.renderFrame();
 			if (frameBuffer) {
 				window.drawBuffer(frameBuffer);

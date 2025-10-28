@@ -98,7 +98,7 @@ void Window::drawBuffer(uint32* buffer) {
     }
 }
 
-void Window::SetLogicalSize(int width, int height) {
+void Window::setLogicalSize(int width, int height) {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     if (renderer) {
         SDL_RenderSetLogicalSize(renderer, width, height);
