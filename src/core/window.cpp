@@ -89,7 +89,7 @@ void Window::drawBuffer(uint32* buffer) {
 		240,
 		32,
 		256 * sizeof(uint32),
-		SDL_PIXELFORMAT_RGBA8888
+		SDL_PIXELFORMAT_ARGB8888
 	);
 
 	if (surface) {

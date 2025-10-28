@@ -795,10 +795,11 @@ void CPU::powerOn() {
 	jammed = false;
 }
 
-void CPU::clock() {
-	// if jammed don't do anything
+bool CPU::clock() {
+	// if jammed, do nothing
+	// return true to allow window to update
 	if (jammed) {
-		return;
+		return true;
 	}
 	// Capture program counter at instruction start so log lines show the
 	// correct address and bytes for the instruction executed.
@@ -848,9 +849,14 @@ void CPU::clock() {
 	int diff_cycles = cycles - prev_cycles;
 
 	if (bus) {
-		bus->clock(diff_cycles * 12);
+		return bus->clock(diff_cycles * 12);
 	}
-	
+
+	return false;
+}
+
+void CPU::triggerNMI() {
+	_interrupt(VECTOR_NMI);
 }
 
 void CPU::logInstruction(uint16 instrPc, uint8 opcode, const uint8* opcodeBytes, size_t byteCount) {

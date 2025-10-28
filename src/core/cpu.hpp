@@ -275,8 +275,11 @@ public:
 	// RUNNING
 
 	void run();
-	void clock();
+	bool clock(); // bool to pass nmi
 	void runInstruction(uint8 opcode);
+
+	// External interrupt trigger (called by PPU when NMI occurs)
+	void triggerNMI();
 
 	// Logging helper: write a single-line instruction trace to cpu.log when
 	// `enableCpuLog` is true. Format example:

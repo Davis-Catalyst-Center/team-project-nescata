@@ -12,9 +12,22 @@ uint8 Bus::read(uint16 addr) {
 		case 0x0000 ... 0x1fff: // 2KB RAM
 			// mirror the 2KB RAM every 0x800 bytes
 			return memory[addr & 0x7ff];
-		case 0x2000 ... 0x3fff: // PPU registers (mirrored every 8 bytes)
-			// Placeholder for PPU register read
-			// addr & 0x2007
+		case 0x2000:
+		case 0x2001:
+			return 0; // write only
+		case 0x2002:
+			return ppu->STATread();
+		case 0x2003:
+			return 0;
+		case 0x2004:
+			return ppu->OAMDATAread();
+		case 0x2005:
+		case 0x2006:
+			return 0;
+		case 0x2007:
+			return ppu->read();
+		// more here
+		case 0x2016 ... 0x3fff:
 			return 0;
 		case 0x4000 ... 0x4017: // APU and I/O registers
 			// Placeholder for APU and I/O register read
@@ -60,14 +73,17 @@ void Bus::write(uint16 addr, uint8 val) {
 }
 
 
-void Bus::clock(int cycles) {
+bool Bus::clock(int cycles) {
 	// cpu sends in cycles passed * 12 to get master clock cycles
-	if (ppu) {
-		ppu->step(cycles / 3); // PPU runs at 3x CPU clock rate
-	}
 	if (apu) {
 		apu->step(cycles / 12); // APU runs at CPU clock rate
 	}
+	// do ppu last to pass nmi
+	if (ppu) {
+		return ppu->step(cycles / 3); // PPU runs at 3x CPU clock rate
+	}
+	// if there's no ppu, just return false
+	return false;
 }
 
 

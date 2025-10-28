@@ -5,26 +5,27 @@ PPU::PPU() {
 }
 
 void PPU::reset() {
+	// Initialize PPU state and memory to deterministic values
+	cycle = 0;
 	dot = 0;
 	scanline = 0;
 	frame = 0;
+	buffer = 0;
+	oamaddr = 0;
+	oamdata = 0;
+	ctrl.raw = 0;
+	mask.raw = 0;
+	stat.raw = 0;
+	write_toggle = true; // next write is the first write
+
+	// Clear VRAM and OAM
+	for (int i = 0; i < 0x4000; ++i) vram[i] = 0;
+	for (int i = 0; i < 256; ++i) oam[i] = 0;
 }
 
-void PPU::step(int cycles) { // placeholder implementation
-	for (int i = 0; i < cycles; i++) {
-		dot++;
-		if (dot > 340) {
-			dot -= 341;
-			if (comp) {
-				comp->renderScanline(scanline);
-			}
-			scanline++;
-			if (scanline > 261) {
-				scanline = 0;
-				frame++;
-			}
-		}
-	}
+bool PPU::step(int cycles) {
+	
+	return false;
 }
 
 
@@ -115,16 +116,63 @@ ColorEmphasis PPU::MASKgetEmphasis() {
 // PPUSTAT
 
 uint8 PPU::STATread() {
-	return stat.raw;
+	uint8 value = stat.raw;
+	// Reading PPUSTATUS clears VBlank (bit V) and resets the write toggle (w)
+	stat.V = 0;
+	write_toggle = true;
+	return value;
 }
 
 void PPU::STATwrite(uint8 value) {
-	stat.raw = value;
+    // PPUSTAT writes are ignored
 }
 
+bool PPU::STATisInVBlank() {
+    return stat.V != 0;
+}
 
+bool PPU::STATsprite0Hit() {
+    return stat.S != 0;
+}
 
+bool PPU::STATspriteOverflow() {
+    return stat.O != 0;
+}
 
+// PPUSCRL
+void PPU::SCRLwrite(uint8 value) {
+	// Use member write_toggle instead of a static local so PPUSTATUS reads
+	// can reset this toggle as hardware requires.
+	if (write_toggle) {
+		scrl.x = value;
+	} else {
+		scrl.y = value;
+	}
+	write_toggle = !write_toggle;
+}
+
+PPUSCRL PPU::SCRLget() {
+    return scrl;
+}
+
+// PPUADDR
+void PPU::ADDRwrite(uint8 value) {
+	// Use member write_toggle. First write sets high 6 bits, second write sets low 8 bits.
+	if (write_toggle) {
+		addr.high = value & 0x3F;  // Only 6 bits are used
+	} else {
+		addr.low = value;
+	}
+	write_toggle = !write_toggle;
+}
+
+PPUADDR PPU::ADDRget() {
+    return addr;
+}
+
+void PPU::ADDRincrement(int inc) {
+	addr.addr += inc;
+}
 
 // OAMADDR
 uint8 PPU::OAMADDRread() {
@@ -145,14 +193,38 @@ void PPU::OAMDATAwrite(uint8 value) {
 }
 
 void PPU::OAMDMAwrite(uint8* values) {
+	// Write 256 bytes into OAM starting at current OAMADDR and wrap around (uint8)
+	uint8 addr = oamaddr;
 	for (int i = 0; i < 256; i++) {
-		oam[oamaddr] = values[i]; // In a real implementation, value would come from CPU memory
-		oamaddr++;
+		oam[addr] = values[i]; // In a real implementation, value would come from CPU memory
+		addr++;
 	}
+	oamaddr = addr; // store updated address (wraps naturally via uint8)
+}
+
+uint8 PPU::read() {
+	ADDRincrement(CTRLvramAddressIncrement());
+	switch (addr.addr) {
+		case 0x0000 ... 0x1FFF:
+			return useBuffer(cart ? cart->readChr(addr.addr) : 0);
+		case 0x2000 ... 0x2FFF:
+			;
+
+	}
+}
+
+void PPU::write(uint8 value) {
+
+	ADDRincrement(CTRLvramAddressIncrement());
 }
 
 
 
+uint8 PPU::useBuffer(uint8 value) {
+	uint8 tmp = buffer;
+	buffer = value;
+	return tmp;
+}
 
 void PPU::connectComposite(Composite* compRef) {
 	comp = compRef;
@@ -160,4 +232,20 @@ void PPU::connectComposite(Composite* compRef) {
 
 void PPU::disconnectComposite() {
 	comp = nullptr;
+}
+
+void PPU::connectCPU(CPU* cpuRef) {
+    cpu = cpuRef;
+}
+
+void PPU::disconnectCPU() {
+    cpu = nullptr;
+}
+
+void PPU::connectCart(Cart* cartRef) {
+	cart = cartRef;
+}
+
+void PPU::disconnectCart() {
+	cart = nullptr;
 }

@@ -44,6 +44,8 @@ public:
 
 	uint8 read(uint16 addr);
 	void write(uint16 addr, uint8 val);
+	uint8 readChr(uint16 addr);
+	void writeChr(uint16 addr, uint8 val);
 
 private:
 	void pickMapper(int mapperID,

@@ -23,9 +23,7 @@ void Core::run() {
 	cpu.powerOn();
 	long int lastCycles = 0;
 	while (true) {
-		cpu.clock();
-		// temporary to give window an update chance
-		if (cpu.getCycles() - lastCycles >= 29781) {
+		if (cpu.clock()) { // returns true if nmi
 			
 			uint32* frameBuffer = comp.renderFrame();
 			if (frameBuffer) {

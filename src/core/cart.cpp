@@ -108,6 +108,21 @@ void Cart::write(uint16 addr, uint8 val) {
 	}
 }
 
+uint8 Cart::readChr(uint16 addr) {
+	if (mapper && !blank) {
+		return mapper->readChr(addr);
+		// leave handling up to mapper
+	}
+	return 0;
+}
+
+void Cart::writeChr(uint16 addr, uint8 val) {
+	if (mapper && !blank) {
+		mapper->writeChr(addr, val);
+		// leave handling up to mapper
+	}
+}
+
 void Cart::pickMapper(int mapperID,
 	std::vector<std::array<uint8, 0x4000>>* prgBanks,
 	std::vector<std::array<uint8, 0x2000>>* chrBanks) {

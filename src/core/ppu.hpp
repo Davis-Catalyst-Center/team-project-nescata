@@ -6,8 +6,19 @@
 
 #include "composite.hpp"
 
+
+class CPU; // forward declaration
+
+
+
 class PPU {
 private:
+	inline static const uint8 MIRROR_TABLE[3][4] = {
+		{0, 0, 1, 1}, // HORIZONTAL
+		{0, 1, 0, 1}, // VERTICAL
+		{0, 1, 2, 3}, // FOUR-SCREEN
+	};
+
 	// PPU REGISTERS
 	PPUCTRL ctrl;
 	PPUMASK mask;
@@ -26,7 +37,13 @@ private:
 	int scanline;       // Current PPU scanline
 	int frame;          // Current frame count
 
-	Composite* comp = nullptr; // Connected composite device
+	// Write toggle for PPUSCROLL / PPUADDR writes (first/second write).
+	// Hardware clears this toggle when PPUSTATUS is read.
+	bool write_toggle;
+
+	Cart* cart = nullptr;
+	Composite* comp = nullptr;
+	CPU* cpu = nullptr;
 
 public:
 	PPU();
@@ -80,16 +97,25 @@ public:
 	// PPUADDR
 	void ADDRwrite(uint8 value);
 	PPUADDR ADDRget();
+	void ADDRincrement(int inc);
+
+	// Read and Write
+	uint8 read();
+	void write(uint8 value);
 
 	// PPU Cycles
-	void step(int cycles);
+	bool step(int cycles);
 
+	uint8 useBuffer(uint8 value);
 
-
-
-
-
+	// Additional helper functions for composite rendering
+	uint8 OAMread(int index) { return oam[index]; }
+	uint8* getVRAM() { return vram; }
 
 	void connectComposite(Composite* comp);
 	void disconnectComposite();
+	void connectCPU(CPU* cpu);
+	void disconnectCPU();
+	void connectCart(Cart* cartRef);
+	void disconnectCart();
 };
