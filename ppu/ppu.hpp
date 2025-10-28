@@ -15,11 +15,10 @@ private:
     uint8_t ppuscroll;
     uint8_t ppuaddr;
     uint8_t ppudata;
-
-    uint16_t vram_addr;
-    uint16_t temp_addr; 
-    uint8_t fine_x_scroll;          
-    bool write_toggle;
+    uint16_t vramaddr;
+    uint16_t tempaddr; 
+    uint8_t finexscroll;          
+    bool writetoggle;
 
     int scanline;
     int cycle; 
