@@ -16,8 +16,12 @@ class Window {
         SDL_AudioSpec audio_spec;
         std::queue<std::vector<uint8>> audio_queue;
     public:
-    Window() {
 
+	int width = 256;
+	int height = 240;
+	
+    Window() {
+		
     };
     int StartWindow();
 	bool pollEvent(SDL_Event* event);
@@ -32,6 +36,7 @@ class Window {
 	void fillScreen(uint32 color);
 	void drawPixel(int x, int y, uint32 color);
 	void drawBuffer(uint32* buffer);
+	void setLogicalSize(int width, int height);
 
 	// Audio functions
 	bool initAudio(int frequency = 44100, uint16_t format = AUDIO_S16SYS, int channels = 1, int samples = 2048);

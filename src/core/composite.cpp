@@ -4,15 +4,16 @@ Composite::Composite() {
 	
 }
 
+void Composite::renderScanline(int scanline) {
+	// fill a line of the frame buffer with a random solid color for testing
+	// uint32 color = 0xFF000000 | (rand() % 0x00FFFFFF);
+	// for (int x = 0; x < 256; x++) {
+	// 	frame_buffer[scanline * 256 + x] = color;
+	// }
+}
+
 uint32* Composite::renderFrame() {
-	void* frameBuffer = malloc(256 * 224 * sizeof(uint32));
-	// fill random colors for now, placeholder until PPU integration
-	uint32* buffer = static_cast<uint32*>(frameBuffer);
-	for (int i = 0; i < 256 * 224; i++) {
-		// it's weird because rand() doesn't give enough bits on windows
-		buffer[i] = rand() << 24 ^ rand() << 16 ^ rand() << 8 | 0xFF;
-	}
-	return buffer;
+	return frame_buffer;
 }
 
 void Composite::connectPPU(PPU* ppuRef) {

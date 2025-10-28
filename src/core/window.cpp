@@ -10,8 +10,8 @@ int Window::StartWindow() {
         "nescata",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        256,
-        224,
+        width,
+        height,
         0
     );
 
@@ -81,12 +81,12 @@ void Window::drawBuffer(uint32* buffer) {
     rect.x = 0;
     rect.y = 0;
     rect.w = 256;
-    rect.h = 224;
+    rect.h = 240;
 
     SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(
         buffer,
         256,
-        224,
+        240,
         32,
         256 * sizeof(uint32),
 		SDL_PIXELFORMAT_RGBA8888
@@ -95,6 +95,14 @@ void Window::drawBuffer(uint32* buffer) {
     if (surface) {
         SDL_BlitSurface(surface, nullptr, window_surface, &rect);
         SDL_FreeSurface(surface);
+    }
+}
+
+void Window::SetLogicalSize(int width, int height) {
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+    if (renderer) {
+        SDL_RenderSetLogicalSize(renderer, width, height);
+        SDL_DestroyRenderer(renderer);
     }
 }
 

@@ -1,7 +1,10 @@
 #pragma once
 
 #include "types.hpp"
+
 #include "ppu_registers.hpp"
+
+#include "composite.hpp"
 
 class PPU {
 private:
@@ -22,6 +25,8 @@ private:
 	int dot;            // Current PPU dot (pixel) within the scanline
 	int scanline;       // Current PPU scanline
 	int frame;          // Current frame count
+
+	Composite* comp = nullptr; // Connected composite device
 
 public:
 	PPU();
@@ -78,4 +83,13 @@ public:
 
 	// PPU Cycles
 	void step(int cycles);
+
+
+
+
+
+
+
+	void connectComposite(Composite* comp);
+	void disconnectComposite();
 };

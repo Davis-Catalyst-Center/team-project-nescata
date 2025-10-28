@@ -5,6 +5,7 @@ Core::Core() {
 	bus.connectAPU(&apu);
 	bus.connectPPU(&ppu);
 	comp.connectPPU(&ppu);
+	ppu.connectComposite(&comp);
 	bus.connectController1(&controller1);
 	bus.connectController2(&controller2);
 }
@@ -25,7 +26,6 @@ void Core::run() {
 			uint32* frameBuffer = comp.renderFrame();
 			if (frameBuffer) {
 				window.drawBuffer(frameBuffer);
-				free(frameBuffer);
 			}
 			std::vector<uint8> audioBuffer = apu.getAudioBuffer();
 			window.queueAudio(&audioBuffer);

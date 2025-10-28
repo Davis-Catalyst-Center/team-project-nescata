@@ -10,11 +10,14 @@ void PPU::reset() {
 	frame = 0;
 }
 
-void PPU::step(int cycles) {
+void PPU::step(int cycles) { // placeholder implementation
 	for (int i = 0; i < cycles; i++) {
 		dot++;
 		if (dot > 340) {
-			dot = 0;
+			dot -= 341;
+			if (comp) {
+				comp->renderScanline(scanline);
+			}
 			scanline++;
 			if (scanline > 261) {
 				scanline = 0;
@@ -146,4 +149,15 @@ void PPU::OAMDMAwrite(uint8* values) {
 		oam[oamaddr] = values[i]; // In a real implementation, value would come from CPU memory
 		oamaddr++;
 	}
+}
+
+
+
+
+void PPU::connectComposite(Composite* compRef) {
+	comp = compRef;
+}
+
+void PPU::disconnectComposite() {
+	comp = nullptr;
 }
