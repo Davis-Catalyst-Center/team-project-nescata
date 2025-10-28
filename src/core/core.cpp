@@ -27,6 +27,8 @@ void Core::run() {
 				window.drawBuffer(frameBuffer);
 				free(frameBuffer);
 			}
+			std::vector<uint8> audioBuffer = apu.getAudioBuffer();
+			window.queueAudio(&audioBuffer);
 			handleWindowEvents();
 			window.updateSurface();
 			lastCycles += 29781;

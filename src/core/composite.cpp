@@ -6,10 +6,11 @@ Composite::Composite() {
 
 uint32* Composite::renderFrame() {
 	void* frameBuffer = malloc(256 * 224 * sizeof(uint32));
-	// fill random colors for testing
+	// fill random colors for now, placeholder until PPU integration
 	uint32* buffer = static_cast<uint32*>(frameBuffer);
 	for (int i = 0; i < 256 * 224; i++) {
-		buffer[i] = (rand() % 0xFFFFFFFF) << 8 | 0xFF;
+		// it's weird because rand() doesn't give enough bits on windows
+		buffer[i] = rand() << 24 ^ rand() << 16 ^ rand() << 8 | 0xFF;
 	}
 	return buffer;
 }

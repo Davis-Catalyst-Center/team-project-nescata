@@ -1,7 +1,7 @@
 #include "window.hpp"
 
 int Window::StartWindow() {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         std::cout << "Failed to initialize the SDL2 library\n";
         return -1;
     }
@@ -40,6 +40,7 @@ void Window::updateSurface() {
 }
 
 void Window::closeWindow() {
+    closeAudio();
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 }
@@ -82,20 +83,69 @@ void Window::drawBuffer(uint32* buffer) {
     rect.w = 256;
     rect.h = 224;
 
-    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(
+    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(
         buffer,
         256,
         224,
         32,
         256 * sizeof(uint32),
-		0xFF000000,
-		0x00FF0000,
-		0x0000FF00,
-		0x000000FF
+		SDL_PIXELFORMAT_RGBA8888
     );
 
     if (surface) {
         SDL_BlitSurface(surface, nullptr, window_surface, &rect);
         SDL_FreeSurface(surface);
+    }
+}
+
+bool Window::initAudio(int frequency, uint16_t format, int channels, int samples) {
+    SDL_AudioSpec wanted;
+    wanted.freq = frequency;
+    wanted.format = format;
+    wanted.channels = channels;
+    wanted.samples = samples;
+    wanted.callback = nullptr; // Using queue mode
+    wanted.userdata = nullptr;
+
+    audio_device = SDL_OpenAudioDevice(nullptr, 0, &wanted, &audio_spec, 0);
+    if (audio_device == 0) {
+        std::cout << "Failed to open audio device: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    // Start playing
+    SDL_PauseAudioDevice(audio_device, 0);
+    return true;
+}
+
+void Window::queueAudio(std::vector<uint8>* buffer) {
+    if (audio_device != 0 && buffer != nullptr) {
+        SDL_QueueAudio(audio_device, buffer->data(), buffer->size());
+    }
+}
+
+void Window::pauseAudio(bool pause_on) {
+    if (audio_device != 0) {
+        SDL_PauseAudioDevice(audio_device, pause_on ? 1 : 0);
+    }
+}
+
+uint32 Window::getQueuedAudioSize() const {
+    if (audio_device != 0) {
+        return SDL_GetQueuedAudioSize(audio_device);
+    }
+    return 0;
+}
+
+void Window::clearAudioQueue() {
+    if (audio_device != 0) {
+        SDL_ClearQueuedAudio(audio_device);
+    }
+}
+
+void Window::closeAudio() {
+    if (audio_device != 0) {
+        SDL_CloseAudioDevice(audio_device);
+        audio_device = 0;
     }
 }

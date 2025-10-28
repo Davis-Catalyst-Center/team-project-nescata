@@ -1,8 +1,12 @@
 #pragma once
 
+#include <vector>
+
+#include "types.hpp"
+
+#include "window.hpp"
 
 class APU {
-
 public:
 	APU();
 
@@ -10,4 +14,5 @@ public:
 
 	void step(int cycles);
 
+	std::vector<uint8> getAudioBuffer();
 };

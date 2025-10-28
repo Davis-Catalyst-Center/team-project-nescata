@@ -5,7 +5,7 @@
 
 int main(int argc, char* argv[]) {
     Core core;
-    Cart cart(argc > 1 ? argv[1] : "roms/nestest.nes");
+    Cart cart(argc > 1 ? argv[1] : "");
 
     core.connectCart(&cart);
 	core.setController1(STANDARD);

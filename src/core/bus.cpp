@@ -26,8 +26,8 @@ uint8 Bus::read(uint16 addr) {
             if (cart && !cart->blank) return cart->read(addr); // Delegate to cartridge
             else return 0;
         default:
-            std::cout << "Read from unmapped address: " << std::hex << addr << std::dec << "\n";
-            return 0;
+            // won't happen
+			throw std::runtime_error("Bus read from invalid address: " + std::to_string(addr));
     }
 }
 
@@ -54,7 +54,8 @@ void Bus::write(uint16 addr, uint8 val) {
             if (cart && !cart->blank) cart->write(addr, val); // Delegate to cartridge
             break;
         default:
-            break;
+			// won't happen
+			throw std::runtime_error("Bus write to invalid address: " + std::to_string(addr));
     }
 }
 
