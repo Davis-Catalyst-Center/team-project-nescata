@@ -43,13 +43,13 @@ uint16 CPU::readMem16Wrap(uint16 addr) {
 }
 
 uint8 CPU::pull() {
-    s++;
-    return readMem(STACK_BASE + s);
+	s++;
+	return readMem(STACK_BASE + s);
 }
 
 void CPU::push(uint8 val) {
-    writeMem(STACK_BASE + s, val);
-    s--;
+	writeMem(STACK_BASE + s, val);
+	s--;
 }
 
 uint16 CPU::pull16() {
@@ -103,9 +103,9 @@ uint16 CPU::getOperandAddress(AddressingMode mode) {
 		case ZPY:
 			return (readMem(pc++) + y) & 0xff;
 		case REL: {
-            int8 offset = readMem(pc++);
-            return pc + offset;
-        }
+			int8 offset = readMem(pc++);
+			return pc + offset;
+		}
 		case ABS:
 			addr = readMem16(pc);
 			pc += 2;
@@ -125,7 +125,7 @@ uint16 CPU::getOperandAddress(AddressingMode mode) {
 			return addr;
 		}
 		case IND:
-            // indirect JMP bug is emulated here
+			// indirect JMP bug is emulated here
 			addr = readMem16(pc);
 			pc += 2;
 			return readMem16Wrap(addr);
@@ -200,11 +200,11 @@ void CPU::_compare(uint8 val1, uint8 val2) {
 }
 
 void CPU::_branch(bool condition) {
-    int8 offset = readMem(pc++);
+	int8 offset = readMem(pc++);
 
 	if (condition) {
 		cycles++;
-        const uint16 target_addr = pc + offset;
+		const uint16 target_addr = pc + offset;
 
 		if ((pc & 0xFF00) != (target_addr & 0xFF00)) {
 			cycles++;
@@ -249,33 +249,33 @@ void CPU::_interrupt(CPU::InterruptVector vec) {
 void CPU::op_ADC(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	_addToAccumulator(readMem(addr));
-    if (mode == ABX || mode == ABY || mode == INY) {
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABX || mode == ABY || mode == INY) {
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_AND(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	a &= readMem(addr);
 	_setZNFlags(a);
-    if (mode == ABX || mode == ABY || mode == INY) {
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABX || mode == ABY || mode == INY) {
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_ASL(AddressingMode mode) {
 	if (mode == ACC) {
-        p.C = (a & 0x80) != 0;
-        a <<= 1;
-        _setZNFlags(a);
-    } else {
-        uint16 addr = getOperandAddress(mode);
-        uint8 val = readMem(addr);
-        p.C = (val & 0x80) != 0;
-        val <<= 1;
-        writeMem(addr, val);
-        _setZNFlags(val);
-    }
+		p.C = (a & 0x80) != 0;
+		a <<= 1;
+		_setZNFlags(a);
+	} else {
+		uint16 addr = getOperandAddress(mode);
+		uint8 val = readMem(addr);
+		p.C = (val & 0x80) != 0;
+		val <<= 1;
+		writeMem(addr, val);
+		_setZNFlags(val);
+	}
 }
 
 void CPU::op_BCC(AddressingMode mode) {
@@ -342,9 +342,9 @@ void CPU::op_CLV(AddressingMode mode) {
 void CPU::op_CMP(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	_compare(a, readMem(addr));
-    if (mode == ABX || mode == ABY || mode == INY) {
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABX || mode == ABY || mode == INY) {
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_CPX(AddressingMode mode) {
@@ -378,9 +378,9 @@ void CPU::op_EOR(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	a ^= readMem(addr);
 	_setZNFlags(a);
-    if (mode == ABX || mode == ABY || mode == INY) {
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABX || mode == ABY || mode == INY) {
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_INC(AddressingMode mode) {
@@ -405,7 +405,7 @@ void CPU::op_JMP(AddressingMode mode) {
 }
 
 void CPU::op_JSR(AddressingMode mode) {
-    uint16 addr = readMem16(pc);
+	uint16 addr = readMem16(pc);
 	push16(pc + 1);
 	pc = addr;
 }
@@ -414,27 +414,27 @@ void CPU::op_LDA(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	a = readMem(addr);
 	_setZNFlags(a);
-    if (mode == ABX || mode == ABY || mode == INY) {
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABX || mode == ABY || mode == INY) {
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_LDX(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	x = readMem(addr);
 	_setZNFlags(x);
-    if (mode == ABY || mode == INY) { // LDX uses Absolute,Y
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABY || mode == INY) { // LDX uses Absolute,Y
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_LDY(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	y = readMem(addr);
 	_setZNFlags(y);
-    if (mode == ABX) { // LDY uses Absolute,X
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABX) { // LDY uses Absolute,X
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_LSR(AddressingMode mode) {
@@ -453,24 +453,24 @@ void CPU::op_LSR(AddressingMode mode) {
 }
 
 void CPU::op_NOP(AddressingMode mode) {
-    if (mode != IMP && mode != ACC) {
-        getOperandAddress(mode);
+	if (mode != IMP && mode != ACC) {
+		getOperandAddress(mode);
 
-        if (mode == ABX) {
-            if (pageCrossed) {
-                cycles++;
-            }
-        }
-    }
+		if (mode == ABX) {
+			if (pageCrossed) {
+				cycles++;
+			}
+		}
+	}
 }
 
 void CPU::op_ORA(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	a |= readMem(addr);
 	_setZNFlags(a);
-    if (mode == ABX || mode == ABY || mode == INY) {
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABX || mode == ABY || mode == INY) {
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_PHA(AddressingMode mode) {
@@ -535,9 +535,9 @@ void CPU::op_RTS(AddressingMode mode) {
 void CPU::op_SBC(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	_addToAccumulator(readMem(addr) ^ 0xFF);
-    if (mode == ABX || mode == ABY || mode == INY) {
-        if (pageCrossed) cycles++;
-    }
+	if (mode == ABX || mode == ABY || mode == INY) {
+		if (pageCrossed) cycles++;
+	}
 }
 
 void CPU::op_SEC(AddressingMode mode) {
@@ -612,7 +612,7 @@ void CPU::op_ANC(AddressingMode mode) {
 }
 
 void CPU::op_ANC2(AddressingMode mode) {
-    // Functionally identical to ANC
+	// Functionally identical to ANC
 	uint16 addr = getOperandAddress(mode);
 	a &= readMem(addr);
 	_setZNFlags(a);
@@ -621,18 +621,18 @@ void CPU::op_ANC2(AddressingMode mode) {
 
 void CPU::op_ANE(AddressingMode mode) {
 	// Highly unstable, often treated as a NOP that fetches an operand
-    getOperandAddress(mode);
+	getOperandAddress(mode);
 }
 
 void CPU::op_ARR(AddressingMode mode) {
-    // This instruction has very peculiar flag behavior
+	// This instruction has very peculiar flag behavior
 	uint16 addr = getOperandAddress(mode);
-    a &= readMem(addr);
-    uint8 carry = p.C;
-    a = (a >> 1) | (carry << 7);
-    _setZNFlags(a);
-    p.C = (a >> 6) & 1;
-    p.V = ((a >> 6) & 1) ^ ((a >> 5) & 1);
+	a &= readMem(addr);
+	uint8 carry = p.C;
+	a = (a >> 1) | (carry << 7);
+	_setZNFlags(a);
+	p.C = (a >> 6) & 1;
+	p.V = ((a >> 6) & 1) ^ ((a >> 5) & 1);
 }
 
 void CPU::op_DCP(AddressingMode mode) {
@@ -654,11 +654,11 @@ void CPU::op_ISC(AddressingMode mode) {
 void CPU::op_LAS(AddressingMode mode) {
 	uint16 addr = getOperandAddress(mode);
 	uint8 val = readMem(addr) & s;
-    a = val;
-    x = val;
-    s = val;
+	a = val;
+	x = val;
+	s = val;
 	_setZNFlags(val);
-    if (pageCrossed) cycles++;
+	if (pageCrossed) cycles++;
 }
 
 void CPU::op_LAX(AddressingMode mode) {
@@ -668,12 +668,12 @@ void CPU::op_LAX(AddressingMode mode) {
 	a = val;
 	x = val;
 	_setZNFlags(val);
-    if (pageCrossed) cycles++;
+	if (pageCrossed) cycles++;
 }
 
 void CPU::op_LXA(AddressingMode mode) {
 	// so unstable that it's not really worth implementing
-    getOperandAddress(mode);
+	getOperandAddress(mode);
 }
 
 void CPU::op_RLA(AddressingMode mode) {
@@ -705,12 +705,12 @@ void CPU::op_SAX(AddressingMode mode) {
 }
 
 void CPU::op_SBX(AddressingMode mode) {
-    uint16 addr = getOperandAddress(mode);
-    uint8 val = readMem(addr);
-    uint16 diff = (a & x) - val;
-    p.C = (diff < 0x100);
-    x = diff & 0xFF;
-    _setZNFlags(x);
+	uint16 addr = getOperandAddress(mode);
+	uint8 val = readMem(addr);
+	uint16 diff = (a & x) - val;
+	p.C = (diff < 0x100);
+	x = diff & 0xFF;
+	_setZNFlags(x);
 }
 
 void CPU::op_SHA(AddressingMode mode) {
@@ -757,8 +757,8 @@ void CPU::op_SRE(AddressingMode mode) {
 }
 
 void CPU::op_TAS(AddressingMode mode) {
-    // Unstable, often treated as a NOP that fetches an operand
-    getOperandAddress(mode);
+	// Unstable, often treated as a NOP that fetches an operand
+	getOperandAddress(mode);
 }
 
 void CPU::op_USBC(AddressingMode mode) {
@@ -805,8 +805,8 @@ void CPU::clock() {
 	uint16 instrPc = pc;
 	uint8 opcode = readMem(pc++);
 
-    // Reset page cross flag for each new instruction
-    pageCrossed = false;
+	// Reset page cross flag for each new instruction
+	pageCrossed = false;
 
 	if (enableCpuLog) {
 		// Read up to 3 operand bytes for logging (safe: don't advance pc here)
@@ -815,7 +815,7 @@ void CPU::clock() {
 		opcodeBytes[1] = readMem(instrPc + 1);
 		opcodeBytes[2] = readMem(instrPc + 2);
 		
-        // Determine byte count from the addressing mode table
+		// Determine byte count from the addressing mode table
 		auto mode = OPCODE_ADDRESSING_MAP[opcode];
 		size_t byteCount = 1;
 		switch (mode) {

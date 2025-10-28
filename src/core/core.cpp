@@ -20,9 +20,9 @@ void Core::run() {
 		
 	}
 
-    cpu.powerOn();
+	cpu.powerOn();
 	long int lastCycles = 0;
-    while (true) {
+	while (true) {
 		cpu.clock();
 		// temporary to give window an update chance
 		if (cpu.getCycles() - lastCycles >= 29781) {
@@ -111,12 +111,12 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 }
 
 void Core::connectCart(Cart* cart) {
-    bus.connectCart(cart);
+	bus.connectCart(cart);
 	comp.connectCart(cart);
 }
 
 void Core::disconnectCart() {
-    bus.disconnectCart();
+	bus.disconnectCart();
 	comp.disconnectCart();
 }
 

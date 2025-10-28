@@ -8,25 +8,25 @@
 #include "types.hpp"
 
 class Window {
-    private:
-        bool keep_window_open = true;
-        SDL_Window *window = nullptr;
-        SDL_Surface *window_surface = nullptr;
-        SDL_AudioDeviceID audio_device = 0;
-        SDL_AudioSpec audio_spec;
-        std::queue<std::vector<uint8>> audio_queue;
-    public:
+	private:
+		bool keep_window_open = true;
+		SDL_Window *window = nullptr;
+		SDL_Surface *window_surface = nullptr;
+		SDL_AudioDeviceID audio_device = 0;
+		SDL_AudioSpec audio_spec;
+		std::queue<std::vector<uint8>> audio_queue;
+	public:
 
 	int width = 256;
 	int height = 240;
 	
-    Window() {
+	Window() {
 		
-    };
-    int StartWindow();
+	};
+	int StartWindow();
 	bool pollEvent(SDL_Event* event);
-    void updateSurface();
-    void closeWindow();
+	void updateSurface();
+	void closeWindow();
 
 	void waitForVsync();
 

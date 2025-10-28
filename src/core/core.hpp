@@ -31,17 +31,17 @@ public:
 
 	bool enableWindow = true;
 
-    Core();
+	Core();
 
-    void run();
+	void run();
 	void reset();
 	void fullReset();
 
 	void handleWindowEvents();
 	void handleKeyboardEvent(SDL_KeyboardEvent keyEvent);
 
-    void connectCart(Cart* cart);
-    void disconnectCart();
+	void connectCart(Cart* cart);
+	void disconnectCart();
 	void setController1(ControllerType type);
 	void setController2(ControllerType type);
 };

@@ -94,7 +94,7 @@ Cart::Cart(std::string filename) {
 }
 
 uint8 Cart::read(uint16 addr) {
-    if (mapper && !blank) {
+	if (mapper && !blank) {
 		return mapper->read(addr);
 		// leave handling up to mapper
 	}
@@ -102,22 +102,22 @@ uint8 Cart::read(uint16 addr) {
 }
 
 void Cart::write(uint16 addr, uint8 val) {
-    if (mapper && !blank) {
+	if (mapper && !blank) {
 		mapper->write(addr, val);
 		// leave handling up to mapper
 	}
 }
 
 void Cart::pickMapper(int mapperID,
-    std::vector<std::array<uint8, 0x4000>>* prgBanks,
-    std::vector<std::array<uint8, 0x2000>>* chrBanks) {
-    switch (mapperID) {
-        case 0:
-            mapper = new NROM(prgBanks, chrBanks);
-            break;
-        default:
-            throw std::runtime_error("Unsupported mapper ID: " + std::to_string(mapperID));
-            blank = true;
-            break;
-    }
+	std::vector<std::array<uint8, 0x4000>>* prgBanks,
+	std::vector<std::array<uint8, 0x2000>>* chrBanks) {
+	switch (mapperID) {
+		case 0:
+			mapper = new NROM(prgBanks, chrBanks);
+			break;
+		default:
+			throw std::runtime_error("Unsupported mapper ID: " + std::to_string(mapperID));
+			blank = true;
+			break;
+	}
 }

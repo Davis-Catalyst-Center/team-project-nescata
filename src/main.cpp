@@ -4,11 +4,11 @@
 
 
 int main(int argc, char* argv[]) {
-    Core core;
-    Cart cart(argc > 1 ? argv[1] : "");
+	Core core;
+	Cart cart(argc > 1 ? argv[1] : "");
 
-    core.connectCart(&cart);
+	core.connectCart(&cart);
 	core.setController1(STANDARD);
-    core.run();
-    return 0;
+	core.run();
+	return 0;
 }
