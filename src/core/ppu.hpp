@@ -30,6 +30,7 @@ private:
 
 	uint8 vram[0x4000]; // PPU VRAM
 	uint8 oam[256];     // Object Attribute Memory (OAM)
+	uint8 palette[32];  // Palette Memory
 	uint8 buffer;       // Internal read buffer for PPUDATA reads
 	
 	int cycle;          // Current PPU cycle

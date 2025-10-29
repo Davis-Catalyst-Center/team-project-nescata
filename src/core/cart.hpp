@@ -9,9 +9,9 @@
 #include "types.hpp"
 
 enum MirroringType {
-	HORIZONTAL,
-	VERTICAL,
-	FOUR_SCREEN
+	HORIZONTAL = 0,
+	VERTICAL = 1,
+	FOUR_SCREEN = 2
 };
 
 class Cart {

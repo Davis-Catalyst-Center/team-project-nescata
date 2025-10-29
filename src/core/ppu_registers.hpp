@@ -59,7 +59,7 @@ union PPUADDR {
 		uint8 unused : 2; // Unused to line up to the byte
 	};
 	struct {
-		uint16 addr : 14; // Full 14-bit address
+		uint16 value : 14; // Full 14-bit address
 		uint8 unused2 : 2; // Unused to line up to the byte
 	};	
 };

@@ -171,7 +171,7 @@ PPUADDR PPU::ADDRget() {
 }
 
 void PPU::ADDRincrement(int inc) {
-	addr.addr += inc;
+	addr.value += inc;
 }
 
 // OAMADDR
@@ -204,21 +204,44 @@ void PPU::OAMDMAwrite(uint8* values) {
 
 uint8 PPU::read() {
 	ADDRincrement(CTRLvramAddressIncrement());
-	switch (addr.addr) {
+	switch (addr.value) {
 		case 0x0000 ... 0x1FFF:
-			return useBuffer(cart ? cart->readChr(addr.addr) : 0);
+			return useBuffer(cart ? cart->readChr(addr.value) : 0);
 		case 0x2000 ... 0x2FFF:
-			;
-
+			return useBuffer(vram[(MIRROR_TABLE[cart->mirroring][addr.value - 0x2000 >> 10] << 10) + (addr.value & 0x3ff)]);
+		case 0x3F00 ... 0x3FFF:
+			return palette[addr.value & 0x1f];
+		default:
+			return 0;
 	}
 }
 
 void PPU::write(uint8 value) {
-
+	switch (addr.value) {
+		case 0x0000 ... 0x1FFF:
+			if (cart) cart->writeChr(addr.value, value);
+			break;
+		case 0x2000 ... 0x2FFF:
+			vram[(MIRROR_TABLE[cart->mirroring][addr.value - 0x2000 >> 10] << 10) + (addr.value & 0x3ff)] = value;
+			break;
+		case 0x3F10:
+		case 0x3F14:
+		case 0x3F18:
+		case 0x3F1C:
+			palette[(addr.value ^ 0x10) & 0x1F] = value;
+			break;
+		case 0x3F00 ... 0x3F0F:
+		case 0x3F11 ... 0x3F13:
+		case 0x3F15 ... 0x3F17:
+		case 0x3F19 ... 0x3F1B:
+		case 0x3F1D ... 0x3FFF:
+			palette[addr.value & 0x1F] = value;
+			break;
+		default:
+			break;
+	}
 	ADDRincrement(CTRLvramAddressIncrement());
 }
-
-
 
 uint8 PPU::useBuffer(uint8 value) {
 	uint8 tmp = buffer;
