@@ -61,8 +61,8 @@ void Bus::write(uint16 addr, uint8 val) {
 			if (cart && !cart->blank) cart->write(addr, val); // Delegate to cartridge
 			break;
 		default:
-			// won't happen
-			throw std::runtime_error("Bus write to invalid address: " + std::to_string(addr));
+			// unmapped, do nothing
+			break;
 	}
 }
 
