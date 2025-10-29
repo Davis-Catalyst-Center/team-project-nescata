@@ -52,13 +52,11 @@ void Bus::write(uint16 addr, uint8 val) {
 			// APU/IO write logic here
 			break;
 		case 0x4016:
-			if (controller1) {
-				controller1->write(val);
-			}
+			if (controller1) controller1->write(val);
+			break;
 		case 0x4017:
-			if (controller2) {
-				controller2->write(val);
-			}
+			if (controller2) controller2->write(val);
+			break;
 		case 0x4020 ... 0xffff:
 			if (cart && !cart->blank) cart->write(addr, val); // Delegate to cartridge
 			break;
