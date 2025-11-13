@@ -86,6 +86,7 @@ Cart::Cart(std::string filename) {
 
 	pickMapper(
 		mapperID,
+		batteryBacked,
 		&prgData,
 		&chrData
 	);
@@ -123,12 +124,15 @@ void Cart::writeChr(uint16 addr, uint8 val) {
 	}
 }
 
-void Cart::pickMapper(int mapperID,
+void Cart::pickMapper(
+	int mapperID,
+	bool batteryBacked,
 	std::vector<std::array<uint8, 0x4000>>* prgBanks,
-	std::vector<std::array<uint8, 0x2000>>* chrBanks) {
+	std::vector<std::array<uint8, 0x2000>>* chrBanks
+) {
 	switch (mapperID) {
 		case 0:
-			mapper = new NROM(prgBanks, chrBanks);
+			mapper = new NROM(prgBanks, chrBanks, batteryBacked);
 			break;
 		default:
 			throw std::runtime_error("Unsupported mapper ID: " + std::to_string(mapperID));

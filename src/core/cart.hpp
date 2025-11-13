@@ -48,7 +48,10 @@ public:
 	void writeChr(uint16 addr, uint8 val);
 
 private:
-	void pickMapper(int mapperID,
+	void pickMapper(
+		int mapperID,
+		bool batteryBacked,
 		std::vector<std::array<uint8, 0x4000>>* prgBanks,
-		std::vector<std::array<uint8, 0x2000>>* chrBanks);
+		std::vector<std::array<uint8, 0x2000>>* chrBanks
+	);
 };

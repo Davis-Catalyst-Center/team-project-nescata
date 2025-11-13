@@ -6,7 +6,9 @@ class NROM : public Mapper {
 public:
 	NROM(
 		std::vector<std::array<uint8, 0x4000>>* prgBanksRef,
-		std::vector<std::array<uint8, 0x2000>>* chrBanksRef) {
+		std::vector<std::array<uint8, 0x2000>>* chrBanksRef,
+		bool batteryBacked
+	) {
 		prgBankCount = prgBanksRef->size();
 		chrBankCount = chrBanksRef->size();
 		mapperID = 0;
