@@ -20,9 +20,10 @@ void Composite::renderScanline(int scanline) {
 		frame_buffer[pixel + x] = color;
 	}
 	for (int s = 0; s < 64; s++) {
-		frame_buffer[ppu->oam.sprites[s].y * 256 + ppu->oam.sprites[s].x] = 0xff88ffcc;
+		frame_buffer[pixel + ppu->oam.sprites[s].x] = 0xff88ffcc;
 	}
 }
+
 
 uint32* Composite::renderFrame() {
 	return frame_buffer;
