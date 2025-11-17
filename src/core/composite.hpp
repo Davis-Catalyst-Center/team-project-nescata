@@ -5,8 +5,6 @@
 
 class PPU; // forward declaration
 
-
-
 class Composite {
 private:
 	Cart* cart = nullptr;
