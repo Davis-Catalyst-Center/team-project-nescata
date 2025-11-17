@@ -6,9 +6,10 @@ Composite::Composite() {
 
 void Composite::renderScanline(int scanline) {
 	// fill a line of the frame buffer with a random solid color for testing
-	uint32 color = 0x00FFFFFF;// | (rand() % 0x00FFFFFF);
-	for (int x = 0; x < 256; x++) {
-		frame_buffer[scanline * 256 + x] = color;
+	int pixel = scanline * 256;
+	uint32 color = 0xFF0800ff;
+	for (int x = pixel; x < pixel + 256; x++) {
+		frame_buffer[pixel + x] = color;
 	}
 }
 

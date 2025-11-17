@@ -24,8 +24,8 @@ void PPU::reset() {
 }
 
 bool PPU::step(int cycles) {
-	
-	return  true;
+	comp->renderScanline(0);
+	return true;
 }
 
 
