@@ -25,7 +25,7 @@ void PPU::reset() {
 
 bool PPU::step(int cycles) {
 	
-	return false;
+	return  true;
 }
 
 
