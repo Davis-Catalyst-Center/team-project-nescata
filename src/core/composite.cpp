@@ -4,6 +4,11 @@ Composite::Composite() {
 	
 }
 
+
+
+
+
+
 void Composite::renderScanline(int scanline) {
 	// fill a line of the frame buffer with a random solid color for testing
 	int pixel = scanline * 256;

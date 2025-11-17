@@ -20,7 +20,7 @@ void PPU::reset() {
 
 	// Clear VRAM and OAM
 	for (int i = 0; i < 0x4000; ++i) vram[i] = 0;
-	for (int i = 0; i < 256; ++i) oam[i] = 0;
+	for (int i = 0; i < 256; ++i) oam.raw[i] = 0;
 }
 
 bool PPU::step(int cycles) {
@@ -185,18 +185,18 @@ void PPU::OAMADDRwrite(uint8 value) {
 
 // OAMDATA
 uint8 PPU::OAMDATAread() {
-	return oam[oamaddr];
+	return oam.raw[oamaddr];
 }
 
 void PPU::OAMDATAwrite(uint8 value) {
-	oam[oamaddr] = value;
+	oam.raw[oamaddr] = value;
 }
 
 void PPU::OAMDMAwrite(uint8* values) {
 	// Write 256 bytes into OAM starting at current OAMADDR and wrap around (uint8)
 	uint8 addr = oamaddr;
 	for (int i = 0; i < 256; i++) {
-		oam[addr] = values[i]; // In a real implementation, value would come from CPU memory
+		oam.raw[addr] = values[i]; // In a real implementation, value would come from CPU memory
 		addr++;
 	}
 	oamaddr = addr; // store updated address (wraps naturally via uint8)

@@ -5,6 +5,8 @@
 
 class PPU; // forward declaration
 
+
+
 class Composite {
 private:
 	Cart* cart = nullptr;
@@ -14,6 +16,8 @@ private:
 
 public:
 	Composite();
+
+	
 
 	void renderScanline(int scanline);
 	uint32* renderFrame();
