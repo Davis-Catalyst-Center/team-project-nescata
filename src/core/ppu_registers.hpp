@@ -63,3 +63,14 @@ union PPUADDR {
 		uint8 unused2 : 2; // Unused to line up to the byte
 	};	
 };
+
+union OAM {
+	struct {
+		uint8 y : 8;
+		uint8 tileNum : 8;
+		uint8 attr : 8;
+		uint8 x : 8;
+	} sprites[64];
+	
+	uint8 raw[256];
+};
