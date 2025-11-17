@@ -28,3 +28,6 @@ public:
 	void disconnectCart();
 };
 
+
+
+#include "ppu.hpp"

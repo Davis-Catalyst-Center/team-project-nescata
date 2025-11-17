@@ -9,9 +9,8 @@
 
 class CPU; // forward declaration
 
-
-
 class PPU {
+	friend Composite;
 private:
 	inline static const uint8 MIRROR_TABLE[3][4] = {
 		{0, 0, 1, 1}, // HORIZONTAL
