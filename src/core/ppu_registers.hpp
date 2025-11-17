@@ -70,7 +70,7 @@ union OAM {
 		uint8 tileNum : 8;
 		uint8 attr : 8;
 		uint8 x : 8;
-	} sprite [64];
+	} sprites[64];
 	
 	uint8 raw[256];
 };
