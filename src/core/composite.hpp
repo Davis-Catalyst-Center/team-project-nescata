@@ -2,6 +2,7 @@
 
 #include "types.hpp"
 #include "cart.hpp"
+#include "palettes.hpp"
 
 class PPU; // forward declaration
 
@@ -26,3 +27,6 @@ public:
 	void disconnectCart();
 };
 
+
+
+#include "ppu.hpp"
