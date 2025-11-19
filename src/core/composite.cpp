@@ -16,12 +16,25 @@ void Composite::renderScanline(int scanline) {
 	// fill a line of the frame buffer with a random solid color for testing
 	int pixel = scanline * 256;
 	uint32 color = 0xFF0800ff; 
+	
+}
+
+uint32 renderbackground(){
+
+	return ; 
+}
+uint32 renderSprite(int scanline,int spriteIdx){
+	int pixel = scanline * 256;
+	uint32 retColor[256];
 	for (int x = pixel; x < pixel + 256; x++) {
-		frame_buffer[pixel + x] = color;
+		//retColor[pixel + x] = color;
 	}
 	for (int s = 0; s < 64; s++) {
-		frame_buffer[pixel + ppu->oam.sprites[s].x] = 0xff88ffcc;
+		//retColor[pixel + ppu->oam.sprites[s].x] = 0xff88ffcc;
 	}
+
+
+	return ; 
 }
 
 
