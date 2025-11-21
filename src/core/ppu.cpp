@@ -26,11 +26,11 @@ void PPU::reset() {
 
 bool PPU::step(int cycles) {
 	dot += cycles;
-	if(dot < 341) {
+	if (dot < 341) {
 		return false;
 	}
 
-	if(MASKshowSprites() && oam.raw[0] == scanline && oam.raw[3] <= dot){
+	if (MASKshowSprites() && oam.raw[0] == scanline && oam.raw[3] <= dot) {
 		stat.S = 1;
 	}
 
@@ -38,15 +38,15 @@ bool PPU::step(int cycles) {
 	comp->renderScanline(scanline);
 	scanline++;
 
-	if(scanline==241){
+	if (scanline == 241) {
 		stat.V = 1;
 		stat.S = 0;
-		if(CTRLgenerateNMI() && cpu){
+		if (CTRLgenerateNMI() && cpu) {
 			cpu->triggerNMI();
 		}
 	}
 
-	else if(scanline >= 262){
+	else if (scanline >= 262) {
 		scanline = 0;
 		stat.V = 0;
 		stat.S = 0;

@@ -19,8 +19,11 @@ public:
 	
 
 	void renderScanline(int scanline);
+
 	void renderBackgroundAtLine(int scanline, uint32* lineBuf);
 	void renderSpritesAtLine(int scanline, int spriteIdx, uint32* lineBuf);
+
+	bool getTileLine(int scanline, int tileX, int tileY, uint8 palette, bool flipX, bool flipY, uint32* lineBuf);
 
 	uint32* getBuffer();
 

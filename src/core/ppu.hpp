@@ -2,8 +2,8 @@
 
 #include "types.hpp"
 
+#include <iostream>
 #include "ppu_registers.hpp"
-
 #include "composite.hpp"
 
 

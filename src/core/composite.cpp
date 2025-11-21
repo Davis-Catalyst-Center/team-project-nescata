@@ -37,7 +37,7 @@ void Composite::renderScanline(int scanline) {
 		// if sprite pixel is not transparent, draw it over bg
 		if ((spriteLine[x] & 0x000000FF) != 0) {
 			frameBuffer[pixel + x] = spriteLine[x];
-		} else {
+		} else if ((bgLine[x] & 0x000000FF) != 0) {
 			frameBuffer[pixel + x] = bgLine[x];
 		}
 	}
@@ -51,10 +51,58 @@ void Composite::renderSpritesAtLine(int scanline, int spriteIdx, uint32* lineBuf
 	int pixel = scanline * 256;
 
 	for (int s = 0; s < 64; s++) {
-		lineBuf[pixel + ppu->oam.sprites[s].x] = 0xFFFFD700; // Gold color for sprite
+		std::cout << std::hex << "Rendering sprite:\n"
+			<< "  Y: " << (int)ppu->oam.sprites[s].y << "\n"
+			<< "  Good Y: " << (int)ppu->oam.raw[s * 4] << "\n"
+			<< "  X: " << (int)ppu->oam.sprites[s].x << "\n"
+			<< "  Tile: " << (int)ppu->oam.sprites[s].tileNum << "\n"
+			<< "  Attr: " << (int)ppu->oam.sprites[s].attr << "\n";
+
+		int spriteX = ppu->oam.sprites[s].x;
+		int spriteY = ppu->oam.sprites[s].y;
+		int tileNum = ppu->oam.sprites[s].tileNum;
+		uint8 attributes = ppu->oam.sprites[s].attr;
+
+		bool flipX = (attributes & 0x40) != 0;
+		bool flipY = (attributes & 0x80) != 0;
+		uint8 paletteIndex = (attributes & 0x03) + 4; // sprite palettes start at index 4
+
+		uint32 spriteLine[8] = {0};
+		if (getTileLine(scanline, spriteX, spriteY, paletteIndex, flipX, flipY, spriteLine)) {
+			for (int x = 0; x < 8; x++) {
+				int drawX = spriteX + x;
+				if (drawX >= 0 && drawX < 256) {
+					lineBuf[drawX] = spriteLine[x];
+				}
+			}
+		}
 	}
 
 }
+
+
+bool Composite::getTileLine(int scanline, int tileX, int tileY, uint8 palette, bool flipX, bool flipY, uint32* lineBuf) {
+	// linebuf is 8 pixels wide
+	// just returns if the tile is on this scanline
+	// and if so, fills lineBuf with the pixel colors for the tile's line
+	int y = tileY - scanline;
+	if (y < 0 || y >= 8) return false; // tile not on this line
+
+	// get the full tile
+
+
+	// for now, fill with a test pattern
+	for (int x = 0; x < 8; x++) {
+		lineBuf[x] = (x + scanline) % 2 == 0 ? 0xFF00FFFF : 0xFF0000FF; // Green and Blue pixels
+	}
+	return true;
+}
+
+
+
+
+
+
 
 
 uint32* Composite::getBuffer() {
