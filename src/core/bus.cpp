@@ -77,7 +77,7 @@ void Bus::write(uint16 addr, uint8 val) {
 				uint8 data[256];
 				uint16 startAddr = val << 8;
 				for (int i = 0; i < 256; i++) {
-					data[i] = read(startAddr + i);
+					data[i] = read(startAddr + (i & 0xFF));
 				}
 				ppu->OAMDMAwrite(data);
 			}

@@ -35,9 +35,9 @@ void Composite::renderScanline(int scanline) {
 	// composite bg and sprites onto frame buffer
 	for (int x = 0; x < 256; x++) {
 		// if sprite pixel is not transparent, draw it over bg
-		if ((spriteLine[x] & 0x000000FF) != 0) {
+		if ((spriteLine[x] & 0xFF000000) != 0) {
 			frameBuffer[pixel + x] = spriteLine[x];
-		} else if ((bgLine[x] & 0x000000FF) != 0) {
+		} else if ((bgLine[x] & 0xFF000000) != 0) {
 			frameBuffer[pixel + x] = bgLine[x];
 		}
 	}
@@ -51,12 +51,6 @@ void Composite::renderSpritesAtLine(int scanline, int spriteIdx, uint32* lineBuf
 	int pixel = scanline * 256;
 
 	for (int s = 0; s < 64; s++) {
-		std::cout << std::hex << "Rendering sprite:\n"
-			<< "  Y: " << (int)ppu->oam.sprites[s].y << "\n"
-			<< "  Good Y: " << (int)ppu->oam.raw[s * 4] << "\n"
-			<< "  X: " << (int)ppu->oam.sprites[s].x << "\n"
-			<< "  Tile: " << (int)ppu->oam.sprites[s].tileIdx << "\n"
-			<< "  Attr: " << (int)ppu->oam.sprites[s].attr << "\n";
 
 		int spriteX = ppu->oam.sprites[s].x;
 		int spriteY = ppu->oam.sprites[s].y;
@@ -85,7 +79,7 @@ bool Composite::getTileLine(int scanline, int tileX, int tileY, uint8 palette, b
 	// linebuf is 8 pixels wide
 	// just returns if the tile is on this scanline
 	// and if so, fills lineBuf with the pixel colors for the tile's line
-	int y = tileY - scanline;
+	int y = scanline + tileY;
 	if (y < 0 || y >= 8) return false; // tile not on this line
 
 	// get the full tile
@@ -93,7 +87,7 @@ bool Composite::getTileLine(int scanline, int tileX, int tileY, uint8 palette, b
 
 	// for now, fill with a test pattern
 	for (int x = 0; x < 8; x++) {
-		lineBuf[x] = (x + scanline) % 2 == 0 ? 0xFF00FFFF : 0xFF0000FF; // Green and Blue pixels
+		lineBuf[x] = (x + scanline) % 2 == 0 ? 0xFFFF00FF : 0xFF000000; // Magenta and black pixels
 	}
 	return true;
 }

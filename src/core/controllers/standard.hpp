@@ -55,4 +55,8 @@ public:
 			state.raw &= ~buttonMask;
 		}
 	}
+
+	void setState(uint8 buttonMask) {
+		state.raw = buttonMask;
+	}
 };
