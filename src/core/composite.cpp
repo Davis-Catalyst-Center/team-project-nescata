@@ -55,12 +55,12 @@ void Composite::renderSpritesAtLine(int scanline, int spriteIdx, uint32* lineBuf
 			<< "  Y: " << (int)ppu->oam.sprites[s].y << "\n"
 			<< "  Good Y: " << (int)ppu->oam.raw[s * 4] << "\n"
 			<< "  X: " << (int)ppu->oam.sprites[s].x << "\n"
-			<< "  Tile: " << (int)ppu->oam.sprites[s].tileNum << "\n"
+			<< "  Tile: " << (int)ppu->oam.sprites[s].tileIdx << "\n"
 			<< "  Attr: " << (int)ppu->oam.sprites[s].attr << "\n";
 
 		int spriteX = ppu->oam.sprites[s].x;
 		int spriteY = ppu->oam.sprites[s].y;
-		int tileNum = ppu->oam.sprites[s].tileNum;
+		int tileNum = ppu->oam.sprites[s].tileIdx;
 		uint8 attributes = ppu->oam.sprites[s].attr;
 
 		bool flipX = (attributes & 0x40) != 0;

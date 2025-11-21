@@ -67,10 +67,7 @@ union PPUADDR {
 union OAM {
 	struct {
 		uint8 y : 8;
-		union {
-			uint8 tileNum : 8;
-			uint8 bank : 1;
-		};
+		uint8 tileIdx : 8;
 		uint8 attr : 8;
 		uint8 x : 8;
 	} sprites[64];

@@ -18,8 +18,8 @@ uint8 Bus::read(uint16 addr) {
 			return ppu->OAMDATAread();
 		case 0x2007:
 			return ppu->read();
-		case 0x2016 ... 0x3FFF:
-			return 0;
+		case 0x2008 ... 0x3FFF:
+			return read(addr & 0b0010000000000111); // ppu registers mirror
 		case 0x4000 ... 0x4015: // APU and I/O registers
 			// Placeholder for APU and I/O register read
 			return 0;
