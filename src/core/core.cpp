@@ -101,11 +101,13 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 void Core::connectCart(Cart* cart) {
 	bus.connectCart(cart);
 	comp.connectCart(cart);
+	ppu.connectCart(cart);
 }
 
 void Core::disconnectCart() {
 	bus.disconnectCart();
 	comp.disconnectCart();
+	ppu.disconnectCart();
 }
 
 void Core::setController1(ControllerType type) {
