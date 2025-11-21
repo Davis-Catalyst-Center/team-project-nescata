@@ -28,7 +28,7 @@ private:
 	PPUADDR addr;
 
 	uint8 vram[0x4000]; // PPU VRAM
-	OAM oam;     // Object Attribute Memory (OAM)
+	OAM oam;            // Object Attribute Memory (OAM)
 	uint8 palette[32];  // Palette Memory
 	uint8 buffer;       // Internal read buffer for PPUDATA reads
 	

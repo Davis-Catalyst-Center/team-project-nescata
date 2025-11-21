@@ -25,36 +25,36 @@ void PPU::reset() {
 }
 
 bool PPU::step(int cycles) {
-		dot += cycles;
-		if(dot < 341) {
-			return false;
+	dot += cycles;
+	if(dot < 341) {
+		return false;
+	}
+
+	if(MASKshowSprites() && oam.raw[0] == scanline && oam.raw[3] <= dot){
+		stat.S = 1;
+	}
+
+	dot -= 341;
+	comp->renderScanline(scanline);
+	scanline++;
+
+	if(scanline==241){
+		stat.V = 1;
+		stat.S = 0;
+		if(CTRLgenerateNMI() && cpu){
+			cpu->triggerNMI();
 		}
+	}
 
-		if(MASKshowSprites() && oam.raw[0] == scanline && oam.raw[3] <= dot){
-			stat.S = 1;
-		}
+	else if(scanline >= 262){
+		scanline = 0;
+		stat.V = 0;
+		stat.S = 0;
+		stat.O = 0;
+		write_toggle=true;
+		return true;
+	}
 
-		dot -= 341;
-		scanline ++;
-
-		if(scanline==241){
-			stat.V = 1;
-			stat.S = 0;
-			if(CTRLgenerateNMI() && cpu){
-				cpu->triggerNMI();
-			}
-		}
-
-		else if(scanline >= 262){
-			scanline = 0;
-			stat.V = 0;
-			stat.S = 0;
-			stat.O = 0;
-			write_toggle=true;
-			return true;
-		}
-
-	comp->renderScanline(0);
 	return false;
 }
 

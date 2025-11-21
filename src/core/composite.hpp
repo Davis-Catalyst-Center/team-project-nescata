@@ -11,7 +11,7 @@ private:
 	Cart* cart = nullptr;
 	PPU* ppu = nullptr;
 
-	uint32 frame_buffer[256 * 240]; // NES resolution
+	uint32 frameBuffer[256 * 240]; // NES resolution
 
 public:
 	Composite();
@@ -19,7 +19,10 @@ public:
 	
 
 	void renderScanline(int scanline);
-	uint32* renderFrame();
+	void renderBackgroundAtLine(int scanline, uint32* lineBuf);
+	void renderSpritesAtLine(int scanline, int spriteIdx, uint32* lineBuf);
+
+	uint32* getBuffer();
 
 	void connectPPU(PPU* ppu);
 	void disconnectPPU();

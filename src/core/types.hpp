@@ -9,10 +9,10 @@ typedef int int32;
 
 typedef union {
 	struct {
-		uint8 r;
-		uint8 g;
-		uint8 b;
-		uint8 a;
+		uint8 r : 8;
+		uint8 g : 8;
+		uint8 b : 8;
+		uint8 a : 8;
 	};
-	uint32 value;
+	uint32 value = 0xFFFFFFFF;
 } Color;

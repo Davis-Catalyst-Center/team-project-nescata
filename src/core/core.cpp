@@ -25,7 +25,7 @@ void Core::run() {
 	while (true) {
 		if (cpu.clock()) { // returns true if nmi
 			
-			uint32* frameBuffer = comp.renderFrame();
+			uint32* frameBuffer = comp.getBuffer();
 			if (frameBuffer) {
 				window.drawBuffer(frameBuffer);
 			}

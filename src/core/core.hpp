@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "types.hpp"
+#include "palettes.hpp"
 
 #include "apu.hpp"
 #include "bus.hpp"
