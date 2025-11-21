@@ -49,7 +49,7 @@ bool PPU::step(int cycles) {
 			scanline = 0;
 			stat.V = 0;
 			stat.S = 0;
-			stat.V = 0;
+			stat.O = 0;
 			write_toggle=true;
 			return true;
 		}
