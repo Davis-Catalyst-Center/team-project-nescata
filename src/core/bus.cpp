@@ -18,8 +18,8 @@ uint8 Bus::read(uint16 addr) {
 			return ppu->OAMDATAread();
 		case 0x2007:
 			return ppu->read();
-		case 0x2008 ... 0x3FFF:
-			return read(addr & 0b0010000000000111); // ppu registers mirror
+		case 0x2008 ... 0x3FFF: // ppu registers mirror
+			return read(addr & 0b0010000000000111);
 		case 0x4000 ... 0x4015: // APU and I/O registers
 			// Placeholder for APU and I/O register read
 			return 0;
@@ -45,11 +45,45 @@ void Bus::write(uint16 addr, uint8 val) {
 		case 0x0000 ... 0x1fff: // 2KB RAM
 			memory[addr & 0x7ff] = val;
 			break;
-		case 0x2000 ... 0x3fff: // PPU registers
-			// PPU write logic here
+		case 0x2000:
+			if (ppu) ppu->CTRLwrite(val);
 			break;
-		case 0x4000 ... 0x4015: // APU/IO registers
+		case 0x2001:
+			if (ppu) ppu->MASKwrite(val);
+			break;
+		case 0x2003:
+			if (ppu) ppu->OAMADDRwrite(val);
+			break;
+		case 0x2004:
+			if (ppu) ppu->OAMDATAwrite(val);
+			break;
+		case 0x2005:
+			if (ppu) ppu->SCRLwrite(val);
+			break;
+		case 0x2006:
+			if (ppu) ppu->ADDRwrite(val);
+			break;
+		case 0x2007:
+			if (ppu) ppu->write(val);
+			break;
+		case 0x2008 ... 0x3FFF: // ppu registers mirror
+			write(addr & 0b0010000000000111, val);
+			break;
+		case 0x4000 ... 0x4013: // APU/IO registers
 			// APU/IO write logic here
+			break;
+		case 0x4014: // OAM DMA
+			if (ppu) {
+				uint8 data[256];
+				uint16 startAddr = val << 8;
+				for (int i = 0; i < 256; i++) {
+					data[i] = read(startAddr + i);
+				}
+				ppu->OAMDMAwrite(data);
+			}
+			break;
+		case 0x4015:
+			// APU status write logic here
 			break;
 		case 0x4016:
 			if (controller1) controller1->write(val);
