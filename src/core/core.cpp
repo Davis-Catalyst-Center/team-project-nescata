@@ -62,35 +62,26 @@ void Core::handleWindowEvents() {
 				break;
 		}
 	}
+	// do controller state
+	const uint8* keyboardState = SDL_GetKeyboardState(NULL);
+	uint8 buttonState = (
+		(keyboardState[SDL_SCANCODE_S]    << 7) + // a
+		(keyboardState[SDL_SCANCODE_A]    << 6) + // b
+		(keyboardState[SDL_SCANCODE_Q]    << 5) + // select
+		(keyboardState[SDL_SCANCODE_W]    << 4) + // start
+		(keyboardState[SDL_SCANCODE_UP]   << 3) + // up
+		(keyboardState[SDL_SCANCODE_DOWN] << 2) + // down
+		(keyboardState[SDL_SCANCODE_LEFT] << 1) + // left
+		(keyboardState[SDL_SCANCODE_RIGHT])       // right
+	);
+	controller1.setState(buttonState);
+
+	if (keyboardState[SDL_SCANCODE_1]) window.fillRect(20, 20, 20, 20, 0xffffffff);
 }
 
 void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 	bool pressed = (keyEvent.type == SDL_KEYDOWN);
 	switch (keyEvent.keysym.sym) {
-		case SDLK_s:
-			controller1.setButtonState(0x01, pressed); // A
-			break;
-		case SDLK_a:
-			controller1.setButtonState(0x02, pressed); // B
-			break;
-		case SDLK_q:
-			controller1.setButtonState(0x04, pressed); // Select
-			break;
-		case SDLK_w:
-			controller1.setButtonState(0x08, pressed); // Start
-			break;
-		case SDLK_UP:
-			controller1.setButtonState(0x10, pressed); // Up
-			break;
-		case SDLK_DOWN:
-			controller1.setButtonState(0x20, pressed); // Down
-			break;
-		case SDLK_LEFT:
-			controller1.setButtonState(0x40, pressed); // Left
-			break;
-		case SDLK_RIGHT:
-			controller1.setButtonState(0x80, pressed); // Right
-			break;
 		// other controls
 		case SDLK_r:
 			if (pressed) {
@@ -111,11 +102,13 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 void Core::connectCart(Cart* cart) {
 	bus.connectCart(cart);
 	comp.connectCart(cart);
+	ppu.connectCart(cart);
 }
 
 void Core::disconnectCart() {
 	bus.disconnectCart();
 	comp.disconnectCart();
+	ppu.disconnectCart();
 }
 
 void Core::setController1(ControllerType type) {

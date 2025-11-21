@@ -226,7 +226,7 @@ void PPU::OAMDMAwrite(uint8* values) {
 	// Write 256 bytes into OAM starting at current OAMADDR and wrap around (uint8)
 	uint8 addr = oamaddr;
 	for (int i = 0; i < 256; i++) {
-		oam.raw[addr] = values[i]; // In a real implementation, value would come from CPU memory
+		oam.raw[addr] = values[i];
 		addr++;
 	}
 	oamaddr = addr; // store updated address (wraps naturally via uint8)
@@ -251,7 +251,7 @@ void PPU::write(uint8 value) {
 		case 0x0000 ... 0x1FFF:
 			if (cart) cart->writeChr(addr.value, value);
 			break;
-		case 0x2000 ... 0x2FFF: // segfault here
+		case 0x2000 ... 0x2FFF:
 			vram[(MIRROR_TABLE[cart->mirroring][addr.value - 0x2000 >> 10] << 10) + (addr.value & 0x3ff)] = value;
 			break;
 		case 0x3F10:

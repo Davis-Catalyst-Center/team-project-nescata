@@ -49,4 +49,7 @@ public:
 				break;
 		}
 	}
+	void setState(uint8 buttonMask) {
+		stateHandler->setState(buttonMask);
+	}
 };
