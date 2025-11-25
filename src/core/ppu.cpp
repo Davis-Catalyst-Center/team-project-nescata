@@ -20,22 +20,27 @@ void PPU::reset() {
 	write_toggle = true; // next write is the first write
 
 	// Clear VRAM and OAM
-	for (int i = 0; i < 0x4000; ++i) vram[i] = 0;
-	for (int i = 0; i < 256; ++i) oam.raw[i] = 0;
+	for (int i = 0; i < 0x4000; i++) vram[i] = 0;
+	for (int i = 0; i < 256; i++) oam.raw[i] = 0;
 }
 
 bool PPU::step(int cycles) {
 	dot += cycles;
+	cycle += cycles;
+
 	if (dot < 341) {
 		return false;
 	}
 
-	if (MASKshowSprites() && oam.raw[0] == scanline && oam.raw[3] <= dot) {
+	if (MASKshowSprites() && oam.sprites[0].y == scanline && oam.sprites[0].x <= dot) {
 		stat.S = 1;
 	}
 
 	dot -= 341;
 	comp->renderScanline(scanline);
+	// std::cout << "scanline: " << scanline << std::endl;
+
+
 	scanline++;
 
 	if (scanline == 241) {

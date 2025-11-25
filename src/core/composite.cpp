@@ -10,7 +10,8 @@ Composite::Composite() {
 
 
 void Composite::renderScanline(int scanline) {
-	int pixel = scanline * 256; // start of the line in the frame buffer
+	int pixel = scanline * 256; // not << 8 in case of negative scanlines
+	// start of the line in the frame buffer
 
 	// overscan lines (not visible)
 	if (scanline < 0 || scanline >= 240) {
@@ -24,6 +25,8 @@ void Composite::renderScanline(int scanline) {
 	for (int x = 0; x < 256; x++) { // fill line with bg color
 		frameBuffer[pixel + x] = bgColor;
 	}
+
+	return; // temp to only show bg color
 
 	// render background tiles
 	uint32 bgLine[256] = {0};

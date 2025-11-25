@@ -2,7 +2,7 @@ with open("cpu.log", "r") as f:
 	# splitlines avoids keeping a final empty string if file ends with a newline
 	log_lines = f.read().splitlines()
 
-with open("tools/nestest_placeholder.txt", "r") as f:
+with open("tests/comp.log", "r") as f:
 	verif_lines = f.read().splitlines()
 
 mismatches = 0

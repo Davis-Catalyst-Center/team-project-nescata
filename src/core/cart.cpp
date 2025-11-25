@@ -64,7 +64,7 @@ Cart::Cart(std::string filename) {
 
 	// Load PRG ROM banks
 	std::vector<std::array<uint8, 0x4000>> prgData;
-	for (int i = 0; i < romBankCount; ++i) {
+	for (int i = 0; i < romBankCount; i++) {
 		std::array<uint8, 0x4000> bank{};
 		fread(bank.data(), sizeof(uint8), 0x4000, romFile);
 		prgData.push_back(bank);
@@ -75,7 +75,7 @@ Cart::Cart(std::string filename) {
 		// Some carts have CHR RAM instead of ROM; allocate 8KB of CHR RAM
 		chrData.push_back(std::array<uint8, 0x2000>{});
 	} else {
-		for (int i = 0; i < chrBankCount; ++i) {
+		for (int i = 0; i < chrBankCount; i++) {
 			std::array<uint8, 0x2000> bank{};
 			fread(bank.data(), sizeof(uint8), 0x2000, romFile);
 			chrData.push_back(bank);

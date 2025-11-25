@@ -11,7 +11,7 @@ uint8 Bus::read(uint16 addr) {
 	switch (addr) {
 		case 0x0000 ... 0x1FFF: // 2KB RAM
 			// mirror the 2KB RAM every 0x800 bytes
-			return memory[addr & 0x7ff];
+			return memory[addr & 0x7FF];
 		case 0x2002:
 			return ppu->STATread();
 		case 0x2004:
@@ -19,7 +19,7 @@ uint8 Bus::read(uint16 addr) {
 		case 0x2007:
 			return ppu->read();
 		case 0x2008 ... 0x3FFF: // ppu registers mirror
-			return read(addr & 0b0010000000000111);
+			return read(addr & 0x2007); // 0b0010000000000111
 		case 0x4000 ... 0x4015: // APU and I/O registers
 			// Placeholder for APU and I/O register read
 			return 0;
@@ -77,7 +77,7 @@ void Bus::write(uint16 addr, uint8 val) {
 				uint8 data[256];
 				uint16 startAddr = val << 8;
 				for (int i = 0; i < 256; i++) {
-					data[i] = read(startAddr + (i & 0xFF));
+					data[i] = read(startAddr | (i & 0xFF));
 				}
 				ppu->OAMDMAwrite(data);
 			}

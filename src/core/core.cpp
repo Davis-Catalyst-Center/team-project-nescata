@@ -21,7 +21,7 @@ void Core::run() {
 	}
 
 	cpu.powerOn();
-	long int lastCycles = 0;
+	cpu.reset();
 	while (true) {
 		if (cpu.clock()) { // returns true if nmi
 			
@@ -33,7 +33,6 @@ void Core::run() {
 			window.queueAudio(&audioBuffer);
 			handleWindowEvents();
 			window.updateSurface();
-			lastCycles += 29781;
 		}
 	}
 }
@@ -66,11 +65,11 @@ void Core::handleWindowEvents() {
 	// do controller state
 	const uint8* keyboardState = SDL_GetKeyboardState(NULL);
 	uint8 buttonState = (
-		(keyboardState[SDL_SCANCODE_S] ? 0x01 : 0) |    // A
-		(keyboardState[SDL_SCANCODE_A] ? 0x02 : 0) |    // B
-		(keyboardState[SDL_SCANCODE_Q] ? 0x04 : 0) |    // Select
-		(keyboardState[SDL_SCANCODE_W] ? 0x08 : 0) |    // Start
-		(keyboardState[SDL_SCANCODE_UP] ? 0x10 : 0) |   // Up
+		(keyboardState[SDL_SCANCODE_S] ? 0x01 : 0)    | // A
+		(keyboardState[SDL_SCANCODE_A] ? 0x02 : 0)    | // B
+		(keyboardState[SDL_SCANCODE_Q] ? 0x04 : 0)    | // Select
+		(keyboardState[SDL_SCANCODE_W] ? 0x08 : 0)    | // Start
+		(keyboardState[SDL_SCANCODE_UP] ? 0x10 : 0)   | // Up
 		(keyboardState[SDL_SCANCODE_DOWN] ? 0x20 : 0) | // Down
 		(keyboardState[SDL_SCANCODE_LEFT] ? 0x40 : 0) | // Left
 		(keyboardState[SDL_SCANCODE_RIGHT] ? 0x80 : 0)  // Right
