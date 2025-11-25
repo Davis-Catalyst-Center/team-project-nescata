@@ -11,7 +11,7 @@ Composite::Composite() {
 
 void Composite::renderScanline(int scanline) {
 	std::cout << scanline << "\n";
-	int pixel = scanline * 256; // start of the line in the frame buffer
+	int pixel = scanline * 256; // not << 8 in case of negative scanlines
 
 	// overscan lines (not visible)
 	if (scanline < 0 || scanline >= 240) {
@@ -25,6 +25,8 @@ void Composite::renderScanline(int scanline) {
 	for (int x = 0; x < 256; x++) { // fill line with bg color
 		frameBuffer[pixel + x] = bgColor;
 	}
+
+	return; // temp to only show bg color
 
 	// render background tiles
 	uint32 bgLine[256] = {0};
@@ -52,14 +54,6 @@ void Composite::renderSpritesAtLine(int scanline, int spriteIdx, uint32* lineBuf
 	int pixel = scanline * 256;
 
 	for (int s = 0; s < 64; s++) {
-		// if (s == 0)
-		// std::cout << std::hex << "Rendering sprite:\n"
-		// 	<< "  Y: " << (int)ppu->oam.sprites[s].y << "\n"
-		// 	<< "  Good Y: " << (int)ppu->oam.raw[s * 4] << "\n"
-		// 	<< "  X: " << (int)ppu->oam.sprites[s].x << "\n"
-		// 	<< "  Tile: " << (int)ppu->oam.sprites[s].tileIdx << "\n"
-		// 	<< "  Attr: " << (int)ppu->oam.sprites[s].attr << "\n";
-
 		int spriteX = ppu->oam.sprites[s].x;
 		int spriteY = ppu->oam.sprites[s].y;
 		int tileNum = ppu->oam.sprites[s].tileIdx;

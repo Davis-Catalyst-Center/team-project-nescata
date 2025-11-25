@@ -6,11 +6,7 @@
 
 // FUNCTIONS
 
-CPU::CPU() {
-	// clear previous CPU instruction log
-	FILE* f = fopen("cpu.log", "w");
-	if (f) fclose(f);
-}
+CPU::CPU() {}
 
 
 
@@ -22,6 +18,9 @@ uint8 CPU::readMem(uint16 addr) {
 }
 
 void CPU::writeMem(uint16 addr, uint8 val) {
+	if (addr == 0x2005) {
+		std::cout << "scroll\n";
+	}
 	if (bus) {
 		bus->write(addr, val);
 	}
@@ -214,7 +213,6 @@ void CPU::_branch(bool condition) {
 	}
 }
 
-
 void CPU::_interrupt(CPU::InterruptVector vec) {
 	uint16 vectorAddr = RESET_VECTOR;
 	switch (vec) {
@@ -238,11 +236,6 @@ void CPU::_interrupt(CPU::InterruptVector vec) {
 
 	pc = readMem16(vectorAddr);
 }
-
-
-
-
-
 
 // CPU INSTRUCTIONS
 
@@ -784,6 +777,13 @@ void CPU::reset() {
 }
 
 void CPU::powerOn() {
+	if (enableCpuLog) {
+		// Clear cpu.log on power on
+		FILE* f = fopen("cpu.log", "w");
+		if (f) {
+			fclose(f);
+		}
+	}
 	a = 0;
 	x = 0;
 	y = 0;
@@ -879,6 +879,11 @@ void CPU::logInstruction(uint16 instrPc, uint8 opcode, const uint8* opcodeBytes,
 		if (i < 2) fprintf(f, " ");
 	}
 
+	fprintf(f, " ");
+	// Print opcode mnemonic
+	fprintf(f, "%-3s", OPCODE_MNEMONIC_MAP[opcode]);
+
+	// Print CPU state
 	char p_bits[9];
 	for (int i = 7; i >= 0; --i) {
 		p_bits[7 - i] = ((p.raw >> i) & 1) ? '1' : '0';

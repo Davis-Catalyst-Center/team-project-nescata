@@ -3,7 +3,7 @@
 #include "types.hpp"
 
 #include <iostream>
-#include "ppu_registers.hpp"
+#include "registers.hpp"
 #include "composite.hpp"
 
 
@@ -27,7 +27,7 @@ private:
 	PPUSCRL scrl;
 	PPUADDR addr;
 
-	uint8 vram[0x800]; // PPU VRAM
+	uint8 vram[0x800];  // PPU VRAM
 	OAM oam;            // Object Attribute Memory (OAM)
 	uint8 palette[32];  // Palette Memory
 	uint8 buffer;       // Internal read buffer for PPUDATA reads

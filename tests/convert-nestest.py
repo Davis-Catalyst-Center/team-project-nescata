@@ -53,5 +53,5 @@ for i, line in enumerate(og_lines):
 		print("Generated line:")
 		print(new_line)
 
-with open("tools/nestest_placeholder.txt", "w") as f:
+with open("tools/nestest-convert.txt", "w") as f:
 	f.write("\n".join(new_lines) + "\n")
