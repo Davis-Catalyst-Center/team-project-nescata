@@ -18,9 +18,6 @@ uint8 CPU::readMem(uint16 addr) {
 }
 
 void CPU::writeMem(uint16 addr, uint8 val) {
-	if (addr == 0x2005) {
-		std::cout << "scroll\n";
-	}
 	if (bus) {
 		bus->write(addr, val);
 	}

@@ -19,7 +19,7 @@ uint8 Bus::read(uint16 addr) {
 		case 0x2007:
 			return ppu->read();
 		case 0x2008 ... 0x3FFF: // ppu registers mirror
-			return read(addr & 0x2007); // 0b0010000000000111
+			return read(0x2000 | (addr & 0x7));
 		case 0x4000 ... 0x4015: // APU and I/O registers
 			// Placeholder for APU and I/O register read
 			return 0;
@@ -42,8 +42,8 @@ uint8 Bus::read(uint16 addr) {
 
 void Bus::write(uint16 addr, uint8 val) {
 	switch (addr) {
-		case 0x0000 ... 0x1fff: // 2KB RAM
-			memory[addr & 0x7ff] = val;
+		case 0x0000 ... 0x1FFF: // 2KB RAM
+			memory[addr & 0x7FF] = val;
 			break;
 		case 0x2000:
 			if (ppu) ppu->CTRLwrite(val);
@@ -66,8 +66,8 @@ void Bus::write(uint16 addr, uint8 val) {
 		case 0x2007:
 			if (ppu) ppu->write(val);
 			break;
-		case 0x2008 ... 0x3FFF: // ppu registers mirror
-			write(addr & 0b0010000000000111, val);
+		case 0x2008 ... 0x3FFF:
+			write(0x2000 | (addr & 0x7), val);
 			break;
 		case 0x4000 ... 0x4013: // APU/IO registers
 			// APU/IO write logic here

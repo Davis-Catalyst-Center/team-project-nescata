@@ -4,28 +4,28 @@
 #include <iostream>
 #include <queue>
 #include <vector>
+#include <ctime>
+
 
 #include "types.hpp"
 
 class Window {
-	private:
+private:
 		bool keep_window_open = true;
+		int64 timeAlive = 0;
 		SDL_Window *window = nullptr;
 		SDL_Surface *window_surface = nullptr;
 		SDL_AudioDeviceID audio_device = 0;
 		SDL_AudioSpec audio_spec;
 		std::queue<std::vector<uint8>> audio_queue;
-	public:
-
-	int width = 256;
-	int height = 240;
+public:
 	
 	Window() {
 		
 	};
 	int StartWindow();
 	bool pollEvent(SDL_Event* event);
-	void updateSurface();
+	void updateSurface(bool vsync = false);
 	void closeWindow();
 
 	void waitForVsync();

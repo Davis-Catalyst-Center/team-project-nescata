@@ -17,7 +17,7 @@ void PPU::reset() {
 	ctrl.raw = 0;
 	mask.raw = 0;
 	stat.raw = 0;
-	write_toggle = true; // next write is the first write
+	writeToggle = true; // next write is the first write
 
 	// Clear VRAM and OAM
 	for (int i = 0; i < 0x4000; i++) vram[i] = 0;
@@ -39,8 +39,6 @@ bool PPU::step(int cycles) {
 	dot -= 341;
 	comp->renderScanline(scanline);
 	// std::cout << "scanline: " << scanline << std::endl;
-
-
 	scanline++;
 
 	if (scanline == 241) {
@@ -53,10 +51,11 @@ bool PPU::step(int cycles) {
 
 	else if (scanline >= 262) {
 		scanline = 0;
+		frame++;
 		stat.V = 0;
 		stat.S = 0;
 		stat.O = 0;
-		write_toggle=true;
+		writeToggle=true;
 		return true;
 	}
 
@@ -154,7 +153,7 @@ uint8 PPU::STATread() {
 	uint8 value = stat.raw;
 	// Reading PPUSTATUS clears VBlank (bit V) and resets the write toggle (w)
 	stat.V = 0;
-	write_toggle = true;
+	writeToggle = true;
 	return value;
 }
 
@@ -176,14 +175,14 @@ bool PPU::STATspriteOverflow() {
 
 // PPUSCRL
 void PPU::SCRLwrite(uint8 value) {
-	// Use member write_toggle instead of a static local so PPUSTATUS reads
+	// Use member writeToggle instead of a static local so PPUSTATUS reads
 	// can reset this toggle as hardware requires.
-	if (write_toggle) {
+	if (writeToggle) {
 		scrl.x = value;
 	} else {
 		scrl.y = value;
 	}
-	write_toggle = !write_toggle;
+	writeToggle = !writeToggle;
 }
 
 PPUSCRL PPU::SCRLget() {
@@ -192,13 +191,13 @@ PPUSCRL PPU::SCRLget() {
 
 // PPUADDR
 void PPU::ADDRwrite(uint8 value) {
-	// Use member write_toggle. First write sets high 6 bits, second write sets low 8 bits.
-	if (write_toggle) {
+	// Use member writeToggle. First write sets high 6 bits, second write sets low 8 bits.
+	if (writeToggle) {
 		addr.high = value & 0x3F;  // Only 6 bits are used
 	} else {
 		addr.low = value;
 	}
-	write_toggle = !write_toggle;
+	writeToggle = !writeToggle;
 }
 
 PPUADDR PPU::ADDRget() {
@@ -252,6 +251,7 @@ uint8 PPU::read() {
 }
 
 void PPU::write(uint8 value) {
+	// std::cout << "PPUDATA write: ADDR: " << std::hex << (int)addr.value << " VAL: " << (int)value << "\n";
 	switch (addr.value) {
 		case 0x0000 ... 0x1FFF:
 			if (cart) cart->writeChr(addr.value, value);

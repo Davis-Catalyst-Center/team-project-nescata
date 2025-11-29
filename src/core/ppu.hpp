@@ -39,7 +39,7 @@ private:
 
 	// Write toggle for PPUSCROLL / PPUADDR writes (first/second write).
 	// Hardware clears this toggle when PPUSTATUS is read.
-	bool write_toggle;
+	bool writeToggle;
 
 	Cart* cart = nullptr;
 	Composite* comp = nullptr;
