@@ -50,6 +50,7 @@ void Composite::renderScanline(int scanline) {
 }
 
 void Composite::renderBackgroundAtLine(int scanline, uint32* lineBuf) {
+	
 }
 
 void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf) {
@@ -95,6 +96,8 @@ void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf)
 			uint8 bit0 = (highByte >> bit) & 0x01;
 			uint8 bit1 = (lowByte >> bit) & 0x01;
 			uint8 colorIdx = (bit1 << 1) | bit0;
+
+			if (spriteX + x < 0 || spriteX + x >= 256) continue; // pixel out of bounds
 
 			if (colorIdx == 0) {
 				lineBuf[spriteX + x] = 0; // transparent pixel
