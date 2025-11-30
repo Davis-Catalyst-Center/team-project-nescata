@@ -20,7 +20,8 @@ void PPU::reset() {
 	writeToggle = true; // next write is the first write
 
 	// Clear VRAM and OAM
-	for (int i = 0; i < 0x4000; i++) vram[i] = 0;
+	// VRAM is 0x800 bytes (nametables + palettes are accessed through mirroring)
+	for (int i = 0; i < 0x800; i++) vram[i] = 0;
 	for (int i = 0; i < 256; i++) oam.raw[i] = 0;
 }
 
@@ -237,45 +238,63 @@ void PPU::OAMDMAwrite(uint8* values) {
 }
 
 uint8 PPU::read() {
-	ADDRincrement(CTRLvramAddressIncrement());
-	switch (addr.value) {
+	uint16 a = addr.value & 0x3FFF;
+	uint8 result = 0;
+
+	switch (a) {
 		case 0x0000 ... 0x1FFF:
-			return useBuffer(cart ? cart->readChr(addr.value) : 0);
+			result = useBuffer(cart ? cart->readChr(a) : 0);
+			break;
 		case 0x2000 ... 0x2FFF:
-			return useBuffer(vram[(MIRROR_TABLE[cart->mirroring][addr.value - 0x2000 >> 10] << 10) + (addr.value & 0x3ff)]);
+			result = useBuffer(readNametable(a));
 		case 0x3F00 ... 0x3FFF:
-			return palette[addr.value & 0x1f];
+			result = palette[a & 0x1F];
+			break;
 		default:
-			return 0;
+			result = buffer;
+			break;
 	}
+
+	ADDRincrement(CTRLvramAddressIncrement());
+	return result;
 }
 
 void PPU::write(uint8 value) {
-	// std::cout << "PPUDATA write: ADDR: " << std::hex << (int)addr.value << " VAL: " << (int)value << "\n";
-	switch (addr.value) {
+	uint16 a = addr.value & 0x3FFF;
+
+	switch (a) {
 		case 0x0000 ... 0x1FFF:
-			if (cart) cart->writeChr(addr.value, value);
+			if (cart) cart->writeChr(a, value);
 			break;
 		case 0x2000 ... 0x2FFF:
-			vram[(MIRROR_TABLE[cart->mirroring][addr.value - 0x2000 >> 10] << 10) + (addr.value & 0x3ff)] = value;
+			writeNametable(a, value);
 			break;
 		case 0x3F10:
 		case 0x3F14:
 		case 0x3F18:
 		case 0x3F1C:
-			palette[(addr.value ^ 0x10) & 0x1F] = value;
+			palette[(a ^ 0x10) & 0x1F] = value;
 			break;
 		case 0x3F00 ... 0x3F0F:
 		case 0x3F11 ... 0x3F13:
 		case 0x3F15 ... 0x3F17:
 		case 0x3F19 ... 0x3F1B:
 		case 0x3F1D ... 0x3FFF:
-			palette[addr.value & 0x1F] = value;
+			palette[a & 0x1F] = value;
 			break;
 		default:
 			break;
 	}
+
 	ADDRincrement(CTRLvramAddressIncrement());
+}
+
+uint8 PPU::readNametable(uint16 addr) {
+	return vram[(MIRROR_TABLE[cart ? cart->mirroring : 0][addr >> 10] << 10) + (addr & 0x3FF)];
+}
+
+void PPU::writeNametable(uint16 addr, uint8 value) {
+	vram[(MIRROR_TABLE[cart ? cart->mirroring : 0][addr >> 10] << 10) + (addr & 0x3FF)] = value;
 }
 
 uint8 PPU::useBuffer(uint8 value) {

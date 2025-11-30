@@ -25,16 +25,15 @@ void Composite::renderScanline(int scanline) {
 		frameBuffer[pixel + x] = bgColor;
 	}
 
-	// render background tiles
-	uint32 bgLine[256] = {0};
-	renderBackgroundAtLine(scanline, bgLine);
-	// render sprite tiles
-	// front priority sprites
-	uint32 spriteFrontLine[256] = {0};
-	renderSpritesAtLine(scanline, 0, spriteFrontLine);
 	// back priority sprites
 	uint32 spriteBackLine[256] = {0};
 	renderSpritesAtLine(scanline, 1, spriteBackLine);
+	// render background tiles
+	uint32 bgLine[256] = {0};
+	renderBackgroundAtLine(scanline, bgLine);
+	// front priority sprites
+	uint32 spriteFrontLine[256] = {0};
+	renderSpritesAtLine(scanline, 0, spriteFrontLine);
 
 	// composite bg and sprites onto frame buffer
 	for (int x = 0; x < 256; x++) {
@@ -76,11 +75,13 @@ void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf)
 
 
 		// get the full tile data from CHR ROM/RAM
-		// each tile is 16 bytes. each byte represents one row of 8 pixels
+		// each tile is 16 bytes. the first 8 bytes are the low bits of each pixel row,
+		// and the next 8 bytes are the high bits of each pixel row.
 		// 2 bits per pixel, a bit from each byte, so 2 bytes per row:
-		// (01)(01)(01)(01)(01)(01)(01)(01)
-		// (23)(23)(23)(23)(23)(23)(23)(23)
-		// (45)(45)(45)(45)(45)(45)(45)(45)
+		// (08)(08)(08)(08)(08)(08)(08)(08)
+		// (19)(19)(19)(19)(19)(19)(19)(19)
+		// (2A)(2A)(2A)(2A)(2A)(2A)(2A)(2A)
+		// (3B)(3B)(3B)(3B)(3B)(3B)(3B)(3B)
 		// etc...
 
 		// we only need one row (2 bytes) at a time
@@ -88,8 +89,8 @@ void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf)
 		uint8 highByte, lowByte;
 
 		int row = flipY ? (7 - y) : y;
-		highByte = cart->readChr(spriteIdx * 16 + row);
-		lowByte = cart->readChr(spriteIdx * 16 + row + 8);
+		highByte = cart->readChr(ppu->CTRLspritePatternTableAddress() | spriteIdx * 16 + row);
+		lowByte  = cart->readChr(ppu->CTRLspritePatternTableAddress() | spriteIdx * 16 + row + 8);
 
 		for (int x = 0; x < 8; x++) {
 			int bit = flipX ? x : (7 - x);
@@ -100,7 +101,7 @@ void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf)
 			if (spriteX + x < 0 || spriteX + x >= 256) continue; // pixel out of bounds
 
 			if (colorIdx == 0) {
-				lineBuf[spriteX + x] = 0; // transparent pixel
+				// transparent pixel, do nothing
 			} else {
 				uint8 absPaletteIndex = ppu->palette[paletteIndex * 4 + colorIdx] & 0x3F; // get color index from palette
 				lineBuf[spriteX + x] = defaultARGBpal[absPaletteIndex]; // get ARGB color from palette

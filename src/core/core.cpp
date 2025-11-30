@@ -32,7 +32,7 @@ void Core::run() {
 			std::vector<uint8> audioBuffer = apu.getAudioBuffer();
 			window.queueAudio(&audioBuffer);
 			handleWindowEvents();
-			window.updateSurface(true);
+			window.updateSurface(!SDL_GetKeyboardState(NULL)[SDL_SCANCODE_V]);
 		}
 	}
 }
@@ -83,6 +83,7 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 		// other controls
 		case SDLK_r:
 			if (pressed) {
+				fullReset();
 				reset();
 			}
 			break;

@@ -103,6 +103,9 @@ public:
 	uint8 read();
 	void write(uint8 value);
 
+	uint8 readNametable(uint16 addr);
+	void writeNametable(uint16 addr, uint8 value);
+
 	// PPU Cycles
 	bool step(int cycles);
 
