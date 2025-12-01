@@ -290,11 +290,13 @@ void PPU::write(uint8 value) {
 }
 
 uint8 PPU::readNametable(uint16 addr) {
-	return vram[(MIRROR_TABLE[cart ? cart->mirroring : 0][addr >> 10] << 10) + (addr & 0x3FF)];
+	uint16 index = (addr >> 10) & 0x03;  // Extract bits 10-11 to get 0-3
+	return vram[(MIRROR_TABLE[cart ? cart->mirroring : 0][index] << 10) + (addr & 0x3FF)];
 }
 
 void PPU::writeNametable(uint16 addr, uint8 value) {
-	vram[(MIRROR_TABLE[cart ? cart->mirroring : 0][addr >> 10] << 10) + (addr & 0x3FF)] = value;
+	uint16 index = (addr >> 10) & 0x03;  // Extract bits 10-11 to get 0-3
+	vram[(MIRROR_TABLE[cart ? cart->mirroring : 0][index] << 10) + (addr & 0x3FF)] = value;
 }
 
 uint8 PPU::useBuffer(uint8 value) {

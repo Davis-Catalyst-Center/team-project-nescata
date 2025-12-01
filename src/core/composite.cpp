@@ -51,32 +51,83 @@ void Composite::renderScanline(int scanline) {
 void Composite::renderBackgroundAtLine(int scanline, uint32* lineBuf) {
 	int scrollX = ppu->SCRLget().x;
 	int scrollY = ppu->SCRLget().y;
-	switch (cart->mirroring) {
-		case HORIZONTAL:
-			renderNametableAtLine(scanline, 0, scrollX, scrollY, lineBuf);
-			renderNametableAtLine(scanline, 1, scrollX, scrollY - 256, lineBuf);
-			renderNametableAtLine(scanline, 0, scrollX - 256, scrollY, lineBuf);
-			renderNametableAtLine(scanline, 1, scrollX - 256, scrollY - 256, lineBuf);
-			break;
-		case VERTICAL:
-			renderNametableAtLine(scanline, 0, scrollX, scrollY, lineBuf);
-			renderNametableAtLine(scanline, 0, scrollX - 256, scrollY, lineBuf);
-			renderNametableAtLine(scanline, 1, scrollX, scrollY - 256, lineBuf);
-			renderNametableAtLine(scanline, 1, scrollX - 256, scrollY - 256, lineBuf);
-			break;
-		case FOUR_SCREEN:
-			renderNametableAtLine(scanline, 0, scrollX, scrollY, lineBuf);
-			renderNametableAtLine(scanline, 1, scrollX - 256, scrollY, lineBuf);
-			renderNametableAtLine(scanline, 2, scrollX, scrollY - 256, lineBuf);
-			renderNametableAtLine(scanline, 3, scrollX - 256, scrollY - 256, lineBuf);
-			break;
-		default:
-			break;
+	// render all 4 nametables to handle scrolling
+	// mirroring is handled in PPU nametable read/write functions
+	// nametables are laid out in a 2x2 grid at fixed positions:
+	// NT0 (top-left):    (0, 0)
+	// NT1 (top-right):   (256, 0)
+	// NT2 (bottom-left): (0, 256)
+	// NT3 (bottom-right):(256, 256)
+	// scroll offset shifts what's visible on screen
+	// top 16 pixels are overscan/HUD and should not scroll vertically
+	if (scanline < 16) {
+		scrollY = 0;
 	}
+	renderNametableAtLine(scanline, 0, -scrollX, -scrollY, lineBuf);
+	renderNametableAtLine(scanline, 1, 256 - scrollX, -scrollY, lineBuf);
+	renderNametableAtLine(scanline, 2, -scrollX, 256 - scrollY, lineBuf);
+	renderNametableAtLine(scanline, 3, 256 - scrollX, 256 - scrollY, lineBuf);
 }
 
 void Composite::renderNametableAtLine(int scanline, int nametableIdx, int xPos, int yPos, uint32* lineBuf) {
+	int lineInNametable = scanline - yPos;
+	if (lineInNametable < 0 || lineInNametable >= 240) {
+		return; // line not in this nametable
+	}
+	if (xPos >= 256 || xPos + 255 < 0) {
+		return; // nametable not visible on screen
+	}
+	int nametableBaseAddr = 0x2000 + nametableIdx * 0x400;
+	int attributeBaseAddr = nametableBaseAddr + 0x3C0;
 
+	int tileRowOffset = lineInNametable / 8 * 32;
+	int tileYInRow = lineInNametable % 8;
+
+	for (int tileCol = 0; tileCol < 32; tileCol++) {
+		int tileXPos = xPos + tileCol * 8;
+		if (tileXPos >= 256 || tileXPos + 7 < 0) {
+			continue; // tile not visible on screen
+		}
+
+		uint8 tileIdx = ppu->readNametable(nametableBaseAddr + tileRowOffset + tileCol);
+
+		// get attribute byte
+		int attrRow = (lineInNametable / 32);
+		int attrCol = (tileCol / 4);
+		uint8 attributeByte = ppu->readNametable(attributeBaseAddr + attrRow * 8 + attrCol);
+
+		// determine which quadrant of the attribute byte to use
+		int quadrant = ((lineInNametable % 32) / 16) * 2 + ((tileCol % 4) / 2);
+		uint8 paletteIndex = (attributeByte >> (quadrant * 2)) & 0x03;
+
+		// get the full tile data from CHR ROM/RAM
+		// each tile is 16 bytes. the first 8 bytes are the low bits of each pixel row,
+		// and the next 8 bytes are the high bits of each pixel row.
+		// 2 bits per pixel, a bit from each byte, so 2 bytes per row:
+		// (08)(08)(08)(08)(08)(08)(08)(08)
+		// (19)(19)(19)(19)(19)(19)(19)(19)
+		// (2A)(2A)(2A)(2A)(2A)(2A)(2A)(2A)
+		// (3B)(3B)(3B)(3B)(3B)(3B)(3B)(3B)
+		// etc...
+
+		uint8 highByte = cart->readChr(ppu->CTRLbackgroundPatternTableAddress() | tileIdx * 16 + tileYInRow);
+		uint8 lowByte  = cart->readChr(ppu->CTRLbackgroundPatternTableAddress() | tileIdx * 16 + tileYInRow + 8);
+
+		for (int x = 0; x < 8; x++) {
+			int bit = 7 - x;
+			uint8 bit0 = (highByte >> bit) & 0x01;
+			uint8 bit1 = (lowByte >> bit) & 0x01;
+			uint8 colorIdx = (bit1 << 1) | bit0;
+
+			if (tileXPos + x < 0 || tileXPos + x >= 256) continue; // pixel out of bounds
+			if (colorIdx == 0) {
+				// transparent pixel, do nothing
+			} else {
+				uint8 absPaletteIndex = ppu->palette[paletteIndex * 4 + colorIdx] & 0x3F; // get color index from palette
+				lineBuf[tileXPos + x] = defaultARGBpal[absPaletteIndex]; // get ARGB color from palette
+			}
+		}
+	}
 }
 
 void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf) {
