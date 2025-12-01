@@ -21,6 +21,7 @@ public:
 	void renderScanline(int scanline);
 
 	void renderBackgroundAtLine(int scanline, uint32* lineBuf);
+	void renderNametableAtLine(int scanline, int nametableIdx, int xPos, int yPos, uint32* lineBuf);
 	void renderSpritesAtLine(int scanline, int spriteIdx, uint32* lineBuf);
 
 	uint32* getBuffer();

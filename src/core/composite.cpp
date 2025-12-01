@@ -49,7 +49,34 @@ void Composite::renderScanline(int scanline) {
 }
 
 void Composite::renderBackgroundAtLine(int scanline, uint32* lineBuf) {
-	
+	int scrollX = ppu->SCRLget().x;
+	int scrollY = ppu->SCRLget().y;
+	switch (cart->mirroring) {
+		case HORIZONTAL:
+			renderNametableAtLine(scanline, 0, scrollX, scrollY, lineBuf);
+			renderNametableAtLine(scanline, 1, scrollX, scrollY - 256, lineBuf);
+			renderNametableAtLine(scanline, 0, scrollX - 256, scrollY, lineBuf);
+			renderNametableAtLine(scanline, 1, scrollX - 256, scrollY - 256, lineBuf);
+			break;
+		case VERTICAL:
+			renderNametableAtLine(scanline, 0, scrollX, scrollY, lineBuf);
+			renderNametableAtLine(scanline, 0, scrollX - 256, scrollY, lineBuf);
+			renderNametableAtLine(scanline, 1, scrollX, scrollY - 256, lineBuf);
+			renderNametableAtLine(scanline, 1, scrollX - 256, scrollY - 256, lineBuf);
+			break;
+		case FOUR_SCREEN:
+			renderNametableAtLine(scanline, 0, scrollX, scrollY, lineBuf);
+			renderNametableAtLine(scanline, 1, scrollX - 256, scrollY, lineBuf);
+			renderNametableAtLine(scanline, 2, scrollX, scrollY - 256, lineBuf);
+			renderNametableAtLine(scanline, 3, scrollX - 256, scrollY - 256, lineBuf);
+			break;
+		default:
+			break;
+	}
+}
+
+void Composite::renderNametableAtLine(int scanline, int nametableIdx, int xPos, int yPos, uint32* lineBuf) {
+
 }
 
 void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf) {
@@ -85,7 +112,6 @@ void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf)
 		// etc...
 
 		// we only need one row (2 bytes) at a time
-
 		uint8 highByte, lowByte;
 
 		int row = flipY ? (7 - y) : y;
