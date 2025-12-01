@@ -18,6 +18,14 @@ class Cart {
 public:
 	bool blank = true; // is the cart empty?
 
+	enum {
+		LOAD_SUCCESS,
+		LOAD_EMPTY,
+		LOAD_FILE_NOT_FOUND,
+		LOAD_INVALID_FORMAT,
+		LOAD_UNSUPPORTED_MAPPER
+	} loadStatus = LOAD_EMPTY;
+
 	Mapper* mapper = nullptr;
 
 	uint8 header[16];

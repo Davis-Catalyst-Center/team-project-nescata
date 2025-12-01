@@ -12,13 +12,15 @@ Cart::Cart(std::string filename) {
 	mapper = nullptr;
 
 	if (filename.empty()) {
+		loadStatus = LOAD_EMPTY;
 		return; // silently return if no filename provided
 	}
 
 	// Load ROM file
 	FILE* romFile = fopen(filename.c_str(), "rb");
 	if (!romFile) {
-		throw std::runtime_error("Failed to open ROM file: " + filename);
+		loadStatus = LOAD_FILE_NOT_FOUND;
+		return; // silently return if file cannot be opened
 	}
 
 	// Read header
@@ -27,7 +29,8 @@ Cart::Cart(std::string filename) {
 	// Verify NES file format
 	if (header[0] != 'N' || header[1] != 'E' || header[2] != 'S' || header[3] != 0x1A) {
 		fclose(romFile);
-		throw std::runtime_error("Invalid NES file format: " + filename);
+		loadStatus = LOAD_INVALID_FORMAT;
+		return; // silently return if invalid NES file format
 	}
 
 	// Parse header information
@@ -91,7 +94,12 @@ Cart::Cart(std::string filename) {
 		&chrData
 	);
 
-	blank = false;
+	if (mapper) {
+		loadStatus = LOAD_SUCCESS;
+		blank = false;
+	} else {
+		loadStatus = LOAD_UNSUPPORTED_MAPPER;
+	}
 }
 
 uint8 Cart::read(uint16 addr) {
@@ -135,7 +143,7 @@ void Cart::pickMapper(
 			mapper = new NROM(prgBanks, chrBanks, batteryBacked);
 			break;
 		default:
-			throw std::runtime_error("Unsupported mapper ID: " + std::to_string(mapperID));
+			loadStatus = LOAD_UNSUPPORTED_MAPPER;
 			blank = true;
 			break;
 	}

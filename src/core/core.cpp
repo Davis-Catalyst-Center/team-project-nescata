@@ -87,60 +87,50 @@ void Core::handleWindowEvents() {
 void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 	bool pressed = (keyEvent.type == SDL_KEYDOWN && keyEvent.repeat == 0);
 
-	switch (keyEvent.keysym.sym) {
-		case SDLK_r: // reset
-			if (pressed) {
-				fullReset();
-				reset();
-			}
-			break;
-		case SDLK_ESCAPE: // quit
-			if (pressed) {
-				window.closeWindow();
-				exit(0);
-			}
-			break;
-		case SDLK_p: // pause/unpause
-			if (pressed) {
-				paused = !paused;
-				if (paused) {
-					addMessage("Emulation paused.", 0xFFFFFF00);
-				} else {
-					addMessage("Emulation resumed.", 0xFF00FF00);
+	if (awaitingTextInput) {
+		if (pressed) {
+			if (keyEvent.keysym.sym == SDLK_ESCAPE) {
+				awaitingTextInput = false;
+				inputString.clear();
+			} else if (keyEvent.keysym.sym == SDLK_RETURN) {
+				awaitingTextInput = false;
+			} else if (keyEvent.keysym.sym == SDLK_BACKSPACE) {
+				if (!inputString.empty()) {
+					inputString.pop_back();
+				}
+			} else {
+				char c = keyEvent.keysym.sym;
+				if (c >= 32 && c <= 126) { // printable characters
+					inputString += c;
 				}
 			}
+			updatePromptMessage(inputPrompt + inputString);
+		}
+		return;
+	}
+
+	switch (keyEvent.keysym.sym) {
+		case SDLK_r: // reset
+			if (pressed) commandReset();
+			break;
+		case SDLK_ESCAPE: // quit
+			if (pressed) commandQuit();
+			break;
+		case SDLK_p: // pause/unpause
+			if (pressed) commandTogglePause();
 			break;
 		case SDLK_b: // start rebind flow
-			if (pressed) {
-				paused = true;
-				rebindKeys();
-			}
+			if (pressed) rebindKeys();
 			break;
 		case SDLK_f: // advance a single frame when paused
-			if (pressed) {
-				passFrame = true;
-				if (!paused) paused = true;
-				addMessage("Advancing a single frame.", 0xFFFFFF00);
-			}
+			if (pressed) commandFrameAdvance();
 			break;
 		// speed controls
 		case SDLK_EQUALS: // speed up
-			if (pressed) {
-				emulationSpeed += 0.1;
-				if (emulationSpeed > 4.0) {
-					emulationSpeed = 4.0;
-				}
-				addMessage("Emulation speed: " + std::to_string(emulationSpeed) + "x", 0xFFFFFF00);
-			}
+			if (pressed) commandSpeedUp(1.1);
 			break;
 		case SDLK_MINUS: // slow down
-			if (pressed) {
-				emulationSpeed -= 0.1;
-				if (emulationSpeed < 0.1) {
-					emulationSpeed = 0.1;
-				}
-				addMessage("Emulation speed: " + std::to_string(emulationSpeed) + "x", 0xFFFFFF00);
-			}
+			if (pressed) commandSlowDown(1.1);
 			break;
 		case SDLK_h: // help
 			if (pressed) {
@@ -152,6 +142,12 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 				addMessage("F - Advance Single Frame (when paused)", 0xFFFFFF00);
 				addMessage("+ - Increase Emulation Speed", 0xFFFFFF00);
 				addMessage("- - Decrease Emulation Speed", 0xFFFFFF00);
+			}
+			break;
+		case SDLK_SEMICOLON:
+			if (pressed) {
+				std::string input = getStrInput("> ");
+				parseCommand(input);
 			}
 			break;
 		default:
@@ -182,9 +178,9 @@ void Core::processHeldKeys() {
 	// currently no held key processing needed
 }
 
-void Core::addMessage(const std::string& text, uint32 textColor) {
+void Core::addMessage(const std::string& text, uint32 textColor, int timeToLive) {
 	// add to back of message list
-	messages.emplace_back(Message(text, textColor));
+	messages.emplace_back(Message(text, textColor, timeToLive));
 }
 
 void Core::dismissMessage(size_t index) {
@@ -199,6 +195,15 @@ void Core::dismissMessage() {
 	for (size_t i = 0; i < messages.size(); ++i) {
 		if (messages[i].timeToLive == -1) {
 			messages.erase(messages.begin() + i);
+			break;
+		}
+	}
+}
+
+void Core::updatePromptMessage(std::string newString) {
+	for (size_t i = 0; i < messages.size(); ++i) {
+		if (messages[i].timeToLive == -1) {
+			messages[i].text = newString;
 			break;
 		}
 	}
@@ -226,7 +231,27 @@ void Core::renderMessages() {
 	}
 }
 
+std::string Core::getStrInput(std::string prompt) {
+	awaitingTextInput = true;
+	inputString.clear();
+	addMessage(prompt, 0xFFFFFF00, -1); // infinite time to live
+	inputPrompt = prompt;
+	// wait until input is complete
+	while (awaitingTextInput) {
+		SDL_Delay(100);
+		uint32* frameBuffer = comp.getBuffer();
+		if (frameBuffer) {
+			window.drawBuffer(frameBuffer);
+		}
+		handleWindowEvents();
+		window.updateSurface(1.0);
+	}
+	dismissMessage(); // remove prompt message
+	return inputString;
+}
+
 void Core::rebindKeys() {
+	paused = true;
 	// Start interactive rebind: ask user to choose which button to rebind
 	addMessage("Rebind mode", 0xFFFFFF00);
 	addMessage("Press the key for A button", 0xFFFFFF00);
@@ -281,13 +306,155 @@ int Core::getScancodeOfSingleKey() {
 	return lastKeyScancode;
 }
 
+void Core::parseCommand(std::string command) {
+	// split command into tokens at spaces
+	std::istringstream iss(command);
+	std::vector<std::string> tokens;
+	std::string token;
+	while (iss >> token) {
+		tokens.push_back(token);
+	}
+	if (tokens.empty()) return;
+	// handle commands
+	if (tokens[0] == "reset") {
+		commandReset();
+	} else if (tokens[0] == "pause") {
+		commandTogglePause();
+	} else if (tokens[0] == "quit" || tokens[0] == "exit") {
+		commandQuit();
+	} else if (tokens[0] == "setspeed") {
+		if (tokens.size() >= 2) {
+			double speed = std::stod(tokens[1]);
+			commandSetSpeed(speed);
+		}
+	} else if (tokens[0] == "setmem") {
+		if (tokens.size() >= 3) {
+			// parse address and value (accept hex like 0xNNNN or decimal)
+			try {
+				unsigned long a = std::stoul(tokens[1], nullptr, 0);
+				unsigned long v = std::stoul(tokens[2], nullptr, 0);
+				uint16_t addr = static_cast<uint16_t>(a & 0xFFFF);
+				uint8_t value = static_cast<uint8_t>(v & 0xFF);
+				bus.write(addr, value);
+				std::ostringstream oss;
+				oss << "Memory at 0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << addr
+					<< " set to 0x" << std::setw(2) << static_cast<int>(value);
+				addMessage(oss.str(), 0xFFFFFF00);
+			} catch (...) {
+				addMessage("Invalid address or value for setmem", 0xFFFF0000);
+			}
+		}
+	} else if (tokens[0] == "getmem") {
+		if (tokens.size() >= 2) {
+			try {
+				unsigned long a = std::stoul(tokens[1], nullptr, 0);
+				uint16_t addr = static_cast<uint16_t>(a & 0xFFFF);
+				uint8_t value = bus.read(addr);
+				std::ostringstream oss;
+				oss << "Memory at 0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << addr
+					<< " = 0x" << std::setw(2) << static_cast<int>(value);
+				addMessage(oss.str(), 0xFFFFFF00);
+			} catch (...) {
+				addMessage("Invalid address for getmem", 0xFFFF0000);
+			}
+		}
+	} else if (tokens[0] == "loadrom") {
+		if (tokens.size() >= 2) {
+			// join rest of tokens as filename (in case of spaces)
+			std::string filename = tokens[1];
+			for (size_t i = 2; i < tokens.size(); ++i) {
+				filename += " " + tokens[i];
+			}
+			commandLoadROM(filename);
+		}
+	} else if (tokens[0] == "help") {
+		addMessage("available commands:", 0xFFFFFF00);
+		addMessage("reset - reset the emulator", 0xFFFFFF00);
+		addMessage("pause - toggle pause/unpause", 0xFFFFFF00);
+		addMessage("quit/exit - quit the emulator", 0xFFFFFF00);
+		addMessage("setspeed <speed> - set emulation speed", 0xFFFFFF00);
+		addMessage("setmem <addr> <value> - set memory", 0xFFFFFF00);
+		addMessage("getmem <addr> - get memory at address", 0xFFFFFF00);
+		addMessage("loadrom <filename> - load ROM from file", 0xFFFFFF00);
+	} else {
+		addMessage("Unknown command: " + tokens[0], 0xFFFF0000);
+	}
+}
+
+void Core::commandReset() {
+	fullReset();
+}
+
+void Core::commandTogglePause() {
+	paused = !paused;
+	if (paused) {
+		addMessage("Emulation paused.", 0xFFFFFF00);
+	} else {
+		addMessage("Emulation resumed.", 0xFF00FF00);
+	}
+}
+
+void Core::commandQuit() {
+	window.closeWindow();
+	exit(0);
+}
+
+void Core::commandFrameAdvance() {
+	passFrame = true;
+	if (!paused) paused = true;
+	addMessage("Advancing a single frame.", 0xFFFFFF00);
+}
+
+void Core::commandSpeedUp(double factor) {
+	emulationSpeed *= factor;
+	if (emulationSpeed > 50) {
+		emulationSpeed = 50;
+	}
+	addMessage("Emulation speed: " + std::to_string(emulationSpeed) + "x", 0xFFFFFF00);
+}
+
+void Core::commandSlowDown(double factor) {
+	emulationSpeed /= factor;
+	if (emulationSpeed < 0.1) {
+		emulationSpeed = 0.1;
+	}
+	addMessage("Emulation speed: " + std::to_string(emulationSpeed) + "x", 0xFFFFFF00);
+}
+
+void Core::commandSetSpeed(double speed) {
+	emulationSpeed = speed;
+	if (emulationSpeed < 0.1) {
+		emulationSpeed = 0.1;
+	} else if (emulationSpeed > 50) {
+		emulationSpeed = 50;
+	}
+	addMessage("Emulation speed: " + std::to_string(emulationSpeed) + "x", 0xFFFFFF00);
+}
+
+void Core::commandLoadROM(std::string filename) {
+	// load ROM from filename
+	Cart newCart = Cart(filename);
+	if (newCart.loadStatus != Cart::LOAD_SUCCESS) {
+		addMessage("Failed to load ROM: " + filename, 0xFFFF0000);
+		return;
+	}
+	// connect new cart
+	cart = new Cart(filename);
+	// should free previous cart if exists
+	connectCart(cart);
+	addMessage("Loaded ROM: " + filename, 0xFFFFFF00);
+	fullReset();
+}
+
 void Core::connectCart(Cart* cart) {
+	this->cart = cart;
 	bus.connectCart(cart);
 	comp.connectCart(cart);
 	ppu.connectCart(cart);
 }
 
 void Core::disconnectCart() {
+	this->cart = nullptr;
 	bus.disconnectCart();
 	comp.disconnectCart();
 	ppu.disconnectCart();

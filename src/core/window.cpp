@@ -12,8 +12,8 @@ int Window::StartWindow() {
 		"nescata",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		256,
-		240,
+		WIDTH * PIXEL_SCALE,
+		HEIGHT * PIXEL_SCALE,
 		0
 	);
 
@@ -92,17 +92,24 @@ void Window::fillScreen(uint32 color) {
 }
 
 uint32 Window::getPixel(int x, int y) {
+	// Get pixel color at (x, y), accounting for pixel scale
+	SDL_Rect rect;
+	rect.x = x * PIXEL_SCALE;
+	rect.y = y * PIXEL_SCALE;
+	rect.w = PIXEL_SCALE;
+	rect.h = PIXEL_SCALE;
 	uint32* pixels = (uint32*)window_surface->pixels;
-	int width = window_surface->w;
-	return pixels[y * width + x];
+	int pitch = window_surface->pitch / sizeof(uint32); // pitch in pixels
+	uint32 color = pixels[(rect.y * pitch) + rect.x];
+	return color;
 }
 
 void Window::drawPixel(int x, int y, uint32 color) {
 	SDL_Rect rect;
-	rect.x = x;
-	rect.y = y;
-	rect.w = 1;
-	rect.h = 1;
+	rect.x = x * PIXEL_SCALE;
+	rect.y = y * PIXEL_SCALE;
+	rect.w = PIXEL_SCALE;
+	rect.h = PIXEL_SCALE;
 	if (color >> 24 != 0xFF) { // if not fully opaque, composite
 		uint32 destColor = getPixel(x, y);
 		color = compositeColors(destColor, color);
@@ -117,11 +124,11 @@ void Window::drawBuffer(uint32* buffer) {
 	SDL_Rect rect;
 	rect.x = 0;
 	rect.y = 0;
-	rect.w = 256;
-	rect.h = 240;
+	rect.w = 256 * PIXEL_SCALE;
+	rect.h = 240 * PIXEL_SCALE;
 
 	SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(
-		buffer,
+		(void*)buffer,
 		256,
 		240,
 		32,
@@ -130,7 +137,7 @@ void Window::drawBuffer(uint32* buffer) {
 	);
 
 	if (surface) {
-		SDL_BlitSurface(surface, nullptr, window_surface, &rect);
+		SDL_BlitScaled(surface, nullptr, window_surface, &rect);
 		SDL_FreeSurface(surface);
 	}
 }

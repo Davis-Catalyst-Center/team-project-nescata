@@ -6,23 +6,27 @@
 #include <vector>
 #include <ctime>
 
-
 #include "types.hpp"
 
 class Window {
 private:
-		bool keep_window_open = true;
-		int64 timeAlive = 0;
-		SDL_Window *window = nullptr;
-		SDL_Surface *window_surface = nullptr;
-		SDL_AudioDeviceID audio_device = 0;
-		SDL_AudioSpec audio_spec;
-		std::queue<std::vector<uint8>> audio_queue;
+	bool keep_window_open = true;
+	int64 timeAlive = 0;
+	SDL_Window *window = nullptr;
+	SDL_Surface *window_surface = nullptr;
+	SDL_AudioDeviceID audio_device = 0;
+	SDL_AudioSpec audio_spec;
+	std::queue<std::vector<uint8>> audio_queue;
 public:
-	
 	Window() {
 		
 	};
+
+	int WIDTH = 256;
+	int HEIGHT = 240;
+
+	int PIXEL_SCALE = 3;
+
 	int StartWindow();
 	bool pollEvent(SDL_Event* event);
 	void updateSurface(double emulationSpeed = 1.0);

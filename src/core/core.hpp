@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 #include <SDL2/SDL.h>
 
 #include "types.hpp"
@@ -34,6 +36,8 @@ public:
 	Controller controller1;
 	Controller controller2;
 
+	Cart* cart = nullptr;
+
 	bool enableWindow = true;
 
 	// time management
@@ -43,19 +47,34 @@ public:
 
 	// messaging system
 	std::vector<Message> messages;
-	void addMessage(const std::string& text, uint32 textColor);
+	void addMessage(const std::string& text, uint32 textColor, int timeToLive = 5000);
 	void dismissMessage(size_t index); // manual dismissal
 	void dismissMessage(); // most recent infinite message
+	void updatePromptMessage(std::string newString);
 	void updateMessages();
 	void renderMessages();
 
 	// states
 	void rebindKeys();
 	int getScancodeOfSingleKey();
+	std::string getStrInput(std::string prompt);
+	void parseCommand(std::string command);
 
-	// keybinds
+	// commands
+	void commandReset();
+	void commandTogglePause();
+	void commandQuit();
+	void commandFrameAdvance();
+	void commandSpeedUp(double factor);
+	void commandSlowDown(double factor);
+	void commandSetSpeed(double speed);
+	void commandLoadROM(std::string filename);
+
 	int lastKeyScancode = -1;
 	bool rebindInProgress = false;
+	bool awaitingTextInput = false;
+	std::string inputString;
+	std::string inputPrompt;
 
 	enum class Keybind {
 		A,
@@ -69,14 +88,14 @@ public:
 	};
 
 	int keys[8] = {
-		SDL_SCANCODE_Z,      // A
-		SDL_SCANCODE_X,      // B
-		SDL_SCANCODE_RETURN, // START
-		SDL_SCANCODE_RSHIFT, // SELECT
-		SDL_SCANCODE_UP,     // UP
-		SDL_SCANCODE_DOWN,   // DOWN
-		SDL_SCANCODE_LEFT,   // LEFT
-		SDL_SCANCODE_RIGHT,  // RIGHT
+		SDL_SCANCODE_S,     // A
+		SDL_SCANCODE_A,     // B
+		SDL_SCANCODE_W,     // START
+		SDL_SCANCODE_Q,     // SELECT
+		SDL_SCANCODE_UP,    // UP
+		SDL_SCANCODE_DOWN,  // DOWN
+		SDL_SCANCODE_LEFT,  // LEFT
+		SDL_SCANCODE_RIGHT, // RIGHT
 	};
 
 	Core();

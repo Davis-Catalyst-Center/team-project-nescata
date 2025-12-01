@@ -10,6 +10,6 @@ struct Message {
 	std::time_t timestamp = SDL_GetTicks64(); // time when message was created
 	int timeToLive = 5000; // milliseconds, -1 means infinite
 
-	Message(const std::string& text, uint32 textColor) :
-		text(text), textColor(textColor) {}
+	Message(const std::string& text, uint32 textColor, int timeToLive = 5000) :
+		text(text), textColor(textColor), timeToLive(timeToLive) {}
 };
