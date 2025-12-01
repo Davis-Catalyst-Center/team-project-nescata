@@ -30,10 +30,14 @@ public:
 
 	void waitForVsync();
 
-	// Drawing functions
+	// helpers
+	uint32 compositeColors(uint32 color1, uint32 color2);
 
+	// Drawing functions
 	void fillRect(int x, int y, int w, int h, uint32 color);
 	void fillScreen(uint32 color);
+
+	uint32 getPixel(int x, int y);
 	void drawPixel(int x, int y, uint32 color);
 	void drawBuffer(uint32* buffer);
 	void setLogicalSize(int width, int height);
@@ -45,4 +49,7 @@ public:
 	uint32 getQueuedAudioSize() const;
 	void clearAudioQueue();
 	void closeAudio();
+
+	// text rendering functions
+	void drawText(int x, int y, const std::string& text, uint32 textColor = 0xFFFFFFFF);
 };

@@ -53,16 +53,8 @@ void Composite::renderBackgroundAtLine(int scanline, uint32* lineBuf) {
 	int scrollY = ppu->SCRLget().y;
 	// render all 4 nametables to handle scrolling
 	// mirroring is handled in PPU nametable read/write functions
-	// nametables are laid out in a 2x2 grid at fixed positions:
-	// NT0 (top-left):    (0, 0)
-	// NT1 (top-right):   (256, 0)
-	// NT2 (bottom-left): (0, 256)
-	// NT3 (bottom-right):(256, 256)
-	// scroll offset shifts what's visible on screen
-	// top 16 pixels are overscan/HUD and should not scroll vertically
-	if (scanline < 16) {
-		scrollY = 0;
-	}
+	// nametables are laid out in a 2x2 grid at fixed positions
+	// we scroll the screen over them, but here we just move them under the screen
 	renderNametableAtLine(scanline, 0, -scrollX, -scrollY, lineBuf);
 	renderNametableAtLine(scanline, 1, 256 - scrollX, -scrollY, lineBuf);
 	renderNametableAtLine(scanline, 2, -scrollX, 256 - scrollY, lineBuf);
