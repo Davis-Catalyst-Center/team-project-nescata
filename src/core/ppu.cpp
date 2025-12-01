@@ -225,6 +225,7 @@ uint8 PPU::OAMDATAread() {
 
 void PPU::OAMDATAwrite(uint8 value) {
 	oam.raw[oamaddr] = value;
+	oamaddr++; // increment address (wraps naturally via uint8)
 }
 
 void PPU::OAMDMAwrite(uint8* values) {
@@ -247,6 +248,7 @@ uint8 PPU::read() {
 			break;
 		case 0x2000 ... 0x2FFF:
 			result = useBuffer(readNametable(a));
+			break;
 		case 0x3F00 ... 0x3FFF:
 			result = palette[a & 0x1F];
 			break;
