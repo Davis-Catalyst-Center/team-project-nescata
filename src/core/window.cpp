@@ -35,10 +35,15 @@ bool Window::pollEvent(SDL_Event* event) {
 	return SDL_PollEvent(event);
 }
 
-void Window::updateSurface(bool vsync) {
-	if (vsync) {
-		waitForVsync();
+void Window::updateSurface(double emulationSpeed) {
+	// current time from ctime in milliseconds
+	int64 currentTime = SDL_GetTicks64();
+	double targetFrameTime = (16.666 * 2) / emulationSpeed; // approx 60 fps
+	int64 timeSinceLastFrame = currentTime - timeAlive;
+	if (timeSinceLastFrame < targetFrameTime) {
+		SDL_Delay(targetFrameTime - timeSinceLastFrame);
 	}
+	timeAlive = currentTime;
 	SDL_UpdateWindowSurface(window);
 }
 
@@ -49,14 +54,6 @@ void Window::closeWindow() {
 }
 
 void Window::waitForVsync() {
-	// current time from ctime in milliseconds
-	int64 currentTime = SDL_GetTicks64();
-	float targetFrameTime = 16.666 * 2; // approx 60 fps
-	int64 timeSinceLastFrame = currentTime - timeAlive;
-	if (timeSinceLastFrame < targetFrameTime) {
-		SDL_Delay(targetFrameTime - timeSinceLastFrame);
-	}
-	timeAlive = currentTime;
 }
 
 

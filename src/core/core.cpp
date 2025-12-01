@@ -23,6 +23,12 @@ void Core::run() {
 	cpu.powerOn();
 	cpu.reset();
 	while (true) {
+		if (emulationSpeed == 0.0) {
+			// paused
+			SDL_Delay(100);
+			handleWindowEvents();
+			continue;
+		}
 		if (cpu.clock()) { // returns true if nmi
 			
 			uint32* frameBuffer = comp.getBuffer();
@@ -32,7 +38,7 @@ void Core::run() {
 			std::vector<uint8> audioBuffer = apu.getAudioBuffer();
 			window.queueAudio(&audioBuffer);
 			handleWindowEvents();
-			window.updateSurface(!SDL_GetKeyboardState(NULL)[SDL_SCANCODE_V]);
+			window.updateSurface(emulationSpeed);
 		}
 	}
 }
@@ -65,14 +71,14 @@ void Core::handleWindowEvents() {
 	// do controller state
 	const uint8* keyboardState = SDL_GetKeyboardState(NULL);
 	uint8 buttonState = (
-		(keyboardState[SDL_SCANCODE_S]     ? 0x01 : 0) | // A
-		(keyboardState[SDL_SCANCODE_A]     ? 0x02 : 0) | // B
-		(keyboardState[SDL_SCANCODE_Q]     ? 0x04 : 0) | // Select
-		(keyboardState[SDL_SCANCODE_W]     ? 0x08 : 0) | // Start
-		(keyboardState[SDL_SCANCODE_UP]    ? 0x10 : 0) | // Up
-		(keyboardState[SDL_SCANCODE_DOWN]  ? 0x20 : 0) | // Down
-		(keyboardState[SDL_SCANCODE_LEFT]  ? 0x40 : 0) | // Left
-		(keyboardState[SDL_SCANCODE_RIGHT] ? 0x80 : 0)   // Right
+		(keyboardState[SDL_SCANCODE_S]     << 0) | // A
+		(keyboardState[SDL_SCANCODE_A]     << 1) | // B
+		(keyboardState[SDL_SCANCODE_Q]     << 2) | // Select
+		(keyboardState[SDL_SCANCODE_W]     << 3) | // Start
+		(keyboardState[SDL_SCANCODE_UP]    << 4) | // Up
+		(keyboardState[SDL_SCANCODE_DOWN]  << 5) | // Down
+		(keyboardState[SDL_SCANCODE_LEFT]  << 6) | // Left
+		(keyboardState[SDL_SCANCODE_RIGHT] << 7)   // Right
 	);
 	controller1.setState(buttonState);
 }
@@ -91,6 +97,33 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 			if (pressed) {
 				window.closeWindow();
 				exit(0);
+			}
+			break;
+		case SDLK_p:
+			if (pressed) {
+				if (emulationSpeed != 0.0) {
+					emulationSpeed = 0.0; // pause
+				} else {
+					emulationSpeed = 1.0; // unpause
+				}
+			}
+			break;
+		case SDLK_EQUALS:
+			if (pressed) {
+				emulationSpeed += 0.1;
+				if (emulationSpeed > 4.0) {
+					emulationSpeed = 4.0;
+				}
+				std::cout << "Emulation speed: " << emulationSpeed << "x" << std::endl;
+			}
+			break;
+		case SDLK_MINUS:
+			if (pressed) {
+				emulationSpeed -= 0.1;
+				if (emulationSpeed < 0.1) {
+					emulationSpeed = 0.1;
+				}
+				std::cout << "Emulation speed: " << emulationSpeed << "x" << std::endl;
 			}
 			break;
 		default:

@@ -32,6 +32,9 @@ public:
 
 	bool enableWindow = true;
 
+	// fun variables
+	double emulationSpeed = 1.0; // 1.0 = normal speed
+
 	Core();
 
 	void run();
