@@ -416,7 +416,6 @@ void Core::commandQuit() {
 void Core::commandFrameAdvance() {
 	passFrame = true;
 	if (!paused) paused = true;
-	addMessage("Advancing a single frame.", 0xFFFFFF00);
 }
 
 void Core::commandSpeedUp(double factor) {
