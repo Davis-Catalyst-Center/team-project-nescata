@@ -140,8 +140,10 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 				addMessage("P - Pause/Unpause", 0xFFFFFF00);
 				addMessage("B - Rebind Controller Keys", 0xFFFFFF00);
 				addMessage("F - Advance Single Frame (when paused)", 0xFFFFFF00);
+				addMessage(". - Sprint while held", 0xFFFFFF00);
 				addMessage("+ - Increase Emulation Speed", 0xFFFFFF00);
 				addMessage("- - Decrease Emulation Speed", 0xFFFFFF00);
+				addMessage("; - Command line mode", 0xFFFFFF00);
 			}
 			break;
 		case SDLK_SEMICOLON:
@@ -150,6 +152,11 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 				parseCommand(input);
 			}
 			break;
+		case SDLK_PERIOD:
+			if (pressed) {
+				prevEmulationSpeed = emulationSpeed;
+				emulationSpeed = 99999;
+			}
 		default:
 			if (pressed && rebindInProgress) {
 				lastKeyScancode = keyEvent.keysym.scancode;
@@ -175,7 +182,14 @@ uint8 Core::getControllerButtonState() const {
 }
 
 void Core::processHeldKeys() {
-	// currently no held key processing needed
+	const uint8* keyboardState = SDL_GetKeyboardState(NULL);
+
+	if (keyboardState[SDL_SCANCODE_PERIOD]) {
+		lastKeyStates[0] = 1;
+	} else if (lastKeyStates[0]) {
+		emulationSpeed = prevEmulationSpeed;
+		lastKeyStates[0] = 0;
+	}
 }
 
 void Core::addMessage(const std::string& text, uint32 textColor, int timeToLive) {
@@ -423,11 +437,6 @@ void Core::commandSlowDown(double factor) {
 
 void Core::commandSetSpeed(double speed) {
 	emulationSpeed = speed;
-	if (emulationSpeed < 0.1) {
-		emulationSpeed = 0.1;
-	} else if (emulationSpeed > 50) {
-		emulationSpeed = 50;
-	}
 	addMessage("Emulation speed: " + std::to_string(emulationSpeed) + "x", 0xFFFFFF00);
 }
 

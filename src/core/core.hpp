@@ -42,6 +42,7 @@ public:
 
 	// time management
 	double emulationSpeed = 1.0; // 1.0 = normal speed
+	double prevEmulationSpeed = 1.0;
 	bool paused = false;
 	bool passFrame = false; // used when paused to advance a single frame
 
@@ -73,6 +74,7 @@ public:
 	int lastKeyScancode = -1;
 	bool rebindInProgress = false;
 	bool awaitingTextInput = false;
+	uint8 lastKeyStates[1];
 	std::string inputString;
 	std::string inputPrompt;
 

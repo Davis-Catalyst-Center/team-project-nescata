@@ -1,7 +1,6 @@
 #include "window.hpp"
 #include "ui/font.hpp"
 
-
 int Window::StartWindow() {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 		std::cout << "Failed to initialize the SDL2 library\n";
@@ -14,7 +13,7 @@ int Window::StartWindow() {
 		SDL_WINDOWPOS_CENTERED,
 		WIDTH * PIXEL_SCALE,
 		HEIGHT * PIXEL_SCALE,
-		0
+		SDL_WINDOW_RESIZABLE // Added resizable as Renderer handles scaling nicely
 	);
 
 	if (!window) {
@@ -22,14 +21,38 @@ int Window::StartWindow() {
 		return -1;
 	}
 
-	window_surface = SDL_GetWindowSurface(window);
+	// Create Renderer (Hardware Accelerated)
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);// | SDL_RENDERER_PRESENTVSYNC);
 
-	if (!window_surface) {
-		std::cout << "Failed to get the surface from the window\n";
+	if (!renderer) {
+		std::cout << "Failed to create renderer: " << SDL_GetError() << "\n";
+		// Fallback to software if hardware fails
+		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+		if (!renderer) return -1;
+	}
+
+	// Setup Logical Size:
+	// The renderer will act as if the screen is 256x240.
+	// SDL will automatically scale this up to the actual window size (WIDTH * PIXEL_SCALE).
+	SDL_RenderSetLogicalSize(renderer, WIDTH, HEIGHT);
+	
+	// Enable Alpha Blending (replaces helper compositeColors)
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+	// Create a streaming texture for the NES buffer
+	texture = SDL_CreateTexture(
+		renderer,
+		SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		WIDTH,
+		HEIGHT
+	);
+
+	if (!texture) {
+		std::cout << "Failed to create texture: " << SDL_GetError() << "\n";
 		return -1;
 	}
 
-	SDL_UpdateWindowSurface(window);
 	return 0;
 }
 
@@ -42,121 +65,116 @@ void Window::updateSurface(double emulationSpeed) {
 	int64 currentTime = SDL_GetTicks64();
 	double targetFrameTime = (16.666 * 2) / emulationSpeed; // approx 60 fps
 	int64 timeSinceLastFrame = currentTime - timeAlive;
+	
 	if (timeSinceLastFrame < targetFrameTime) {
-		SDL_Delay(targetFrameTime - timeSinceLastFrame);
+		SDL_Delay((Uint32)(targetFrameTime - timeSinceLastFrame));
 	}
+	
 	timeAlive = currentTime;
-	SDL_UpdateWindowSurface(window);
+
+	// Present the backbuffer to the screen
+	SDL_RenderPresent(renderer);
+	
+	// Strictly speaking, we should Clear after Presenting to prepare for next frame,
+	// but since emulators usually overwrite the whole screen every frame, it's optional.
+	// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	// SDL_RenderClear(renderer);
 }
 
 void Window::closeWindow() {
 	closeAudio();
-	SDL_DestroyWindow(window);
+	if (texture) SDL_DestroyTexture(texture);
+	if (renderer) SDL_DestroyRenderer(renderer);
+	if (window) SDL_DestroyWindow(window);
 	SDL_Quit();
 }
 
 void Window::waitForVsync() {
+	// SDL_RENDERER_PRESENTVSYNC in StartWindow handles this generally, 
+	// but manual waiting can stay empty or use SDL_Delay logic.
 }
 
-// helpers
+// Helpers
 
-uint32 Window::compositeColors(uint32 color1, uint32 color2) {
-	Color c1, c2, result;
-	c1.value = color1;
-	c2.value = color2;
-
-	// Alpha blending formula: out = src * alpha + dst * (1 - alpha)
-	float alpha = c2.a / 255.0f;
-	result.r = (c2.r * alpha + c1.r * (1.0f - alpha));
-	result.g = (c2.g * alpha + c1.g * (1.0f - alpha));
-	result.b = (c2.b * alpha + c1.b * (1.0f - alpha));
-	result.a = 0xFF; // fully opaque
-
-	return result.value;
+void Window::setRenderColor(uint32 color) {
+	// Assuming ARGB8888 based on previous code usage
+	Uint8 a = (color >> 24) & 0xFF;
+	Uint8 r = (color >> 16) & 0xFF;
+	Uint8 g = (color >> 8) & 0xFF;
+	Uint8 b = (color >> 0) & 0xFF;
+	SDL_SetRenderDrawColor(renderer, r, g, b, a);
 }
-
 
 // Drawing functions
 
 void Window::fillRect(int x, int y, int w, int h, uint32 color) {
+	// No need to multiply by PIXEL_SCALE, RenderSetLogicalSize handles it
 	SDL_Rect rect;
 	rect.x = x;
 	rect.y = y;
 	rect.w = w;
 	rect.h = h;
-	SDL_FillRect(window_surface, &rect, color);
+	
+	setRenderColor(color);
+	SDL_RenderFillRect(renderer, &rect);
 }
 
 void Window::fillScreen(uint32 color) {
-	SDL_FillRect(window_surface, nullptr, color);
+	setRenderColor(color);
+	SDL_RenderClear(renderer);
 }
 
 uint32 Window::getPixel(int x, int y) {
-	// Get pixel color at (x, y), accounting for pixel scale
-	SDL_Rect rect;
-	rect.x = x * PIXEL_SCALE;
-	rect.y = y * PIXEL_SCALE;
-	rect.w = PIXEL_SCALE;
-	rect.h = PIXEL_SCALE;
-	uint32* pixels = (uint32*)window_surface->pixels;
-	int pitch = window_surface->pitch / sizeof(uint32); // pitch in pixels
-	uint32 color = pixels[(rect.y * pitch) + rect.x];
+	// WARNING: Reading pixels from a hardware renderer is extremely slow (stall).
+	// This functionality is deprecated in a Renderer workflow.
+	
+	void* pixels = malloc(sizeof(uint32) * 1);
+	SDL_Rect rect = { x, y, 1, 1 };
+	
+	// We must read into the format we expect (ARGB8888)
+	SDL_RenderReadPixels(renderer, &rect, SDL_PIXELFORMAT_ARGB8888, pixels, sizeof(uint32));
+	
+	uint32 color = *(uint32*)pixels;
+	free(pixels);
 	return color;
 }
 
 void Window::drawPixel(int x, int y, uint32 color) {
-	SDL_Rect rect;
-	rect.x = x * PIXEL_SCALE;
-	rect.y = y * PIXEL_SCALE;
-	rect.w = PIXEL_SCALE;
-	rect.h = PIXEL_SCALE;
-	if (color >> 24 != 0xFF) { // if not fully opaque, composite
-		uint32 destColor = getPixel(x, y);
-		color = compositeColors(destColor, color);
-	}
-	SDL_FillRect(window_surface, &rect, color);
+	// Logic for Alpha Blending is now handled by SDL_SetRenderDrawBlendMode
+	// set in StartWindow. We don't need manual composition or getPixel.
+	
+	setRenderColor(color);
+	SDL_RenderDrawPoint(renderer, x, y);
 }
 
 void Window::drawBuffer(uint32* buffer) {
-	if (!buffer) {
+	if (!buffer || !texture) {
 		return;
 	}
-	SDL_Rect rect;
-	rect.x = 0;
-	rect.y = 0;
-	rect.w = 256 * PIXEL_SCALE;
-	rect.h = 240 * PIXEL_SCALE;
 
-	SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(
-		(void*)buffer,
-		256,
-		240,
-		32,
-		256 * sizeof(uint32),
-		SDL_PIXELFORMAT_ARGB8888
-	);
+	// Update the texture with the new pixel data
+	// 256 * sizeof(uint32) is the pitch (bytes per row)
+	SDL_UpdateTexture(texture, nullptr, buffer, 256 * sizeof(uint32));
 
-	if (surface) {
-		SDL_BlitScaled(surface, nullptr, window_surface, &rect);
-		SDL_FreeSurface(surface);
-	}
+	// Copy the texture to the renderer. 
+	// passing nullptr for source/dest rects uses the full texture and fills the logical screen
+	SDL_RenderCopy(renderer, texture, nullptr, nullptr);
 }
 
 void Window::setLogicalSize(int width, int height) {
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
 	if (renderer) {
 		SDL_RenderSetLogicalSize(renderer, width, height);
-		SDL_DestroyRenderer(renderer);
 	}
 }
 
+// Audio functions (Unchanged)
 bool Window::initAudio(int frequency, uint16_t format, int channels, int samples) {
 	SDL_AudioSpec wanted;
 	wanted.freq = frequency;
 	wanted.format = format;
 	wanted.channels = channels;
 	wanted.samples = samples;
-	wanted.callback = nullptr; // Using queue mode
+	wanted.callback = nullptr; 
 	wanted.userdata = nullptr;
 
 	audio_device = SDL_OpenAudioDevice(nullptr, 0, &wanted, &audio_spec, 0);
@@ -165,7 +183,6 @@ bool Window::initAudio(int frequency, uint16_t format, int channels, int samples
 		return false;
 	}
 
-	// Start playing
 	SDL_PauseAudioDevice(audio_device, 0);
 	return true;
 }
@@ -203,20 +220,18 @@ void Window::closeAudio() {
 }
 
 void Window::drawText(int x, int y, const std::string& text, uint32 textColor) {
-	// Render using the built-in 8x8 bitmap font. Characters outside 32..127
-	// will be rendered as a space.
-	if (!window_surface) return;
+	if (!renderer) return;
 
 	int px = x;
 	for (char c : text) {
 		uint8 code = static_cast<uint8>(c);
-		// newline handling
+		
 		if (code == '\n') {
 			px = x;
 			y += 8;
 			continue;
 		}
-		// restrict to printable characters
+		
 		if (code < 32 || code > 127) code = 32;
 		const uint8* glyph = font6x8[code - 32];
 
@@ -227,12 +242,12 @@ void Window::drawText(int x, int y, const std::string& text, uint32 textColor) {
 					drawPixel(px + col, y + row, textColor);
 				} else {
 					// slightly transparent background for readability
-					uint32 bgColor = 0x7F000000; // ARGB with low alpha
-					drawPixel(px + col, y + row, bgColor);
+					// ARGB: 0x7F000000 -> A=127, R=0, G=0, B=0
+					drawPixel(px + col, y + row, 0x7F000000);
 				}
 			}
 		}
 
-		px += 6; // advance by 6 pixels per character
+		px += 6; 
 	}
 }

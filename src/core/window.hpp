@@ -5,6 +5,7 @@
 #include <queue>
 #include <vector>
 #include <ctime>
+#include <string>
 
 #include "types.hpp"
 
@@ -12,15 +13,20 @@ class Window {
 private:
 	bool keep_window_open = true;
 	int64 timeAlive = 0;
-	SDL_Window *window = nullptr;
-	SDL_Surface *window_surface = nullptr;
+	
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
+	SDL_Texture* texture = nullptr; // Used for the emulator framebuffer
+	
 	SDL_AudioDeviceID audio_device = 0;
 	SDL_AudioSpec audio_spec;
 	std::queue<std::vector<uint8>> audio_queue;
+
+	// Helper to extract RGBA from uint32 (ARGB8888)
+	void setRenderColor(uint32 color);
+
 public:
-	Window() {
-		
-	};
+	Window() {};
 
 	int WIDTH = 256;
 	int HEIGHT = 240;
@@ -34,14 +40,14 @@ public:
 
 	void waitForVsync();
 
-	// helpers
-	uint32 compositeColors(uint32 color1, uint32 color2);
-
 	// Drawing functions
 	void fillRect(int x, int y, int w, int h, uint32 color);
 	void fillScreen(uint32 color);
 
-	uint32 getPixel(int x, int y);
+	// Note: getPixel is very slow on Renderers and is rarely needed for rendering logic.
+	// It is kept for compatibility but should be avoided.
+	uint32 getPixel(int x, int y); 
+	
 	void drawPixel(int x, int y, uint32 color);
 	void drawBuffer(uint32* buffer);
 	void setLogicalSize(int width, int height);
