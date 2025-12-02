@@ -1,0 +1,17 @@
+A list of ROMs that work decently at the moment
+
+Current criteria:
+	- Can't rely on scroll (it's broken)
+	- Uses mapper 0 (NROM) (it's the only implemented one)
+
+Classic ones that could work (untested):
+	- pacman
+	- donkey kong
+	- mario bros
+	- burgertime
+	- popeye
+	- wrecking crew
+
+To demonstrate missing functionality:
+	- tetris
+	- super mario bros
