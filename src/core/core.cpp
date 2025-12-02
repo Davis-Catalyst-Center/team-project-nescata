@@ -75,9 +75,9 @@ void Core::handleWindowEvents() {
 		}
 	}
 
+	processHeldKeys();
 	updateMessages();
 	renderMessages();
-	processHeldKeys();
 
 	// update controller state from current keyboard state
 	uint8 buttonState = getControllerButtonState();

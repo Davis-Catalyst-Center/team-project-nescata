@@ -1,14 +1,10 @@
 #include "cpu.hpp"
 
-
-
 // CPU IMPLEMENTATION
 
 // FUNCTIONS
 
 CPU::CPU() {}
-
-
 
 uint8 CPU::readMem(uint16 addr) {
 	if (bus) {
