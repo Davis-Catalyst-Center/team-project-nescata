@@ -444,14 +444,25 @@ void Core::commandLoadROM(std::string filename) {
 	// load ROM from filename
 	Cart newCart = Cart(filename);
 	if (newCart.loadStatus != Cart::LOAD_SUCCESS) {
-		addMessage("Failed to load ROM: " + filename, 0xFFFF0000);
-		return;
+		switch (cart->loadStatus) {
+			case Cart::LOAD_FILE_NOT_FOUND:
+				addMessage("File not found: " + cart->filename, 0xFFFF0000);
+				break;
+			case Cart::LOAD_INVALID_FORMAT:
+				addMessage("Invalid ROM format: " + cart->filename, 0xFFFF0000);
+				break;
+			case Cart::LOAD_UNSUPPORTED_MAPPER:
+				addMessage("Unsupported mapper: " + cart->filename, 0xFFFF0000);
+				break;
+			case Cart::LOAD_EMPTY:
+				addMessage("Empty ROM: " + cart->filename, 0xFFFF0000);
+				break;
+		}
 	}
 	// connect new cart
 	cart = new Cart(filename);
 	// should free previous cart if exists
 	connectCart(cart);
-	addMessage("Loaded ROM: " + filename, 0xFFFFFF00);
 	fullReset();
 }
 
@@ -460,6 +471,26 @@ void Core::connectCart(Cart* cart) {
 	bus.connectCart(cart);
 	comp.connectCart(cart);
 	ppu.connectCart(cart);
+	if (!cart) {
+
+	} else if (cart->blank) {
+		switch (cart->loadStatus) {
+			case Cart::LOAD_FILE_NOT_FOUND:
+				addMessage("File not found: " + cart->filename, 0xFFFF0000);
+				break;
+			case Cart::LOAD_INVALID_FORMAT:
+				addMessage("Invalid ROM format: " + cart->filename, 0xFFFF0000);
+				break;
+			case Cart::LOAD_UNSUPPORTED_MAPPER:
+				addMessage("Unsupported mapper: " + cart->filename, 0xFFFF0000);
+				break;
+			case Cart::LOAD_EMPTY:
+				addMessage("Empty ROM: " + cart->filename, 0xFFFF0000);
+				break;
+		}
+	} else { // success
+		addMessage("ROM loaded: " + cart->filename, 0xFF00FF00);
+	}
 }
 
 void Core::disconnectCart() {

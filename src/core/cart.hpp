@@ -26,6 +26,8 @@ public:
 		LOAD_UNSUPPORTED_MAPPER
 	} loadStatus = LOAD_EMPTY;
 
+	std::string filename;
+
 	Mapper* mapper = nullptr;
 
 	uint8 header[16];
@@ -48,7 +50,7 @@ public:
 	int trainerSize = 0;
 	
 	Cart();
-	Cart(std::string filename);
+	Cart(std::string fName);
 
 	uint8 read(uint16 addr);
 	void write(uint16 addr, uint8 val);

@@ -7,9 +7,11 @@ Cart::Cart() {
 
 }
 
-Cart::Cart(std::string filename) {
+Cart::Cart(std::string fName) {
 	blank = true; // Default to blank until successfully loaded
 	mapper = nullptr;
+
+	filename = fName;
 
 	if (filename.empty()) {
 		loadStatus = LOAD_EMPTY;

@@ -9,6 +9,10 @@
 
 #include "types.hpp"
 
+static int WIDTH = 256;
+static int HEIGHT = 240;
+static int PIXEL_SCALE = 3;
+
 class Window {
 private:
 	bool keep_window_open = true;
@@ -27,11 +31,6 @@ private:
 
 public:
 	Window() {};
-
-	int WIDTH = 256;
-	int HEIGHT = 240;
-
-	int PIXEL_SCALE = 3;
 
 	int StartWindow();
 	bool pollEvent(SDL_Event* event);
