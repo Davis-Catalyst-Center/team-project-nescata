@@ -54,8 +54,13 @@ void Core::reset() {
 	cpu.reset();
 }
 
+void Core::powerOn() {
+	cpu.powerOn();
+}
+
 void Core::fullReset() {
 	cpu.powerOn();
+	cpu.reset();
 }
 
 void Core::handleWindowEvents() {
@@ -86,6 +91,8 @@ void Core::handleWindowEvents() {
 
 void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 	bool pressed = (keyEvent.type == SDL_KEYDOWN && keyEvent.repeat == 0);
+	const uint8* keyboardState = SDL_GetKeyboardState(NULL);
+	bool modShift = keyboardState[SDL_SCANCODE_LSHIFT] || keyboardState[SDL_SCANCODE_RSHIFT];
 
 	if (awaitingTextInput) {
 		if (pressed) {
@@ -111,7 +118,12 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 
 	switch (keyEvent.keysym.sym) {
 		case SDLK_r: // reset
-			if (pressed) commandReset();
+			if (pressed) {
+				if (modShift) {
+					powerOn();
+				}
+				reset();
+			}
 			break;
 		case SDLK_ESCAPE: // quit
 			if (pressed) commandQuit();
@@ -337,7 +349,9 @@ void Core::parseCommand(std::string command) {
 	if (tokens.empty()) return;
 	// handle commands
 	if (tokens[0] == "reset") {
-		commandReset();
+		reset();
+	} else if (tokens[0] == "power") {
+		powerOn();
 	} else if (tokens[0] == "pause") {
 		commandTogglePause();
 	} else if (tokens[0] == "quit" || tokens[0] == "exit") {
@@ -389,7 +403,8 @@ void Core::parseCommand(std::string command) {
 		}
 	} else if (tokens[0] == "help") {
 		addMessage("available commands:", 0xFFFFFF00);
-		addMessage("reset - reset the emulator", 0xFFFFFF00);
+		addMessage("reset - reset the rom", 0xFFFFFF00);
+		addMessage("poweron - power cycle the emulator", 0xFFFFFF00);
 		addMessage("pause - toggle pause/unpause", 0xFFFFFF00);
 		addMessage("quit/exit - quit the emulator", 0xFFFFFF00);
 		addMessage("setspeed <speed> - set emulation speed", 0xFFFFFF00);
@@ -399,10 +414,6 @@ void Core::parseCommand(std::string command) {
 	} else {
 		addMessage("Unknown command: " + tokens[0], 0xFFFF0000);
 	}
-}
-
-void Core::commandReset() {
-	fullReset();
 }
 
 void Core::commandTogglePause() {

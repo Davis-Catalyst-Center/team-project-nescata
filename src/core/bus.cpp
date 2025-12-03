@@ -7,6 +7,11 @@ Bus::Bus() {
 	cart = nullptr; // No cartridge loaded
 }
 
+void Bus::clearMem() {
+	// used when a full reset is needed
+	std::fill(std::begin(memory), std::end(memory), 0);
+}
+
 uint8 Bus::read(uint16 addr) {
 	switch (addr) {
 		case 0x0000 ... 0x1FFF: // 2KB RAM

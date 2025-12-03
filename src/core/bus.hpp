@@ -21,6 +21,8 @@ public:
 
 	Bus();
 
+	void clearMem();
+
 	uint8 read(uint16 addr);
 	void write(uint16 addr, uint8 val);
 
