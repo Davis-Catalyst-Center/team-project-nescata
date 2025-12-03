@@ -125,6 +125,10 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 		case SDLK_f: // advance a single frame when paused
 			if (pressed) commandFrameAdvance();
 			break;
+		//tieg
+		case SDLK_g:
+			if (pressed) randomizeMemory(100);
+			break;
 		// speed controls
 		case SDLK_EQUALS: // speed up
 			if (pressed) commandSpeedUp(1.1);
@@ -144,6 +148,8 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 				addMessage("+ - Increase Emulation Speed", 0xFFFFFF00);
 				addMessage("- - Decrease Emulation Speed", 0xFFFFFF00);
 				addMessage("; - Command line mode", 0xFFFFFF00);
+				// tieg
+				addMessage("G - Randomize 100 Bytes in Memory", 0xFFFFFF00);
 			}
 			break;
 		case SDLK_SEMICOLON:
@@ -505,4 +511,23 @@ void Core::setController1(ControllerType type) {
 
 void Core::setController2(ControllerType type) {
 	controller2 = Controller(type);
+}
+
+// tieg
+#include <random>
+
+void Core::randomizeMemory(int numBytes) {
+    // Set up a random number generator
+    std::random_device rd;  // Obtain a random number from hardware
+    std::mt19937 gen(rd()); // Seed the generator
+    std::uniform_int_distribution<uint16_t> addr_dist(0, 0xFFFF); // Distribution for 16-bit addresses
+    std::uniform_int_distribution<uint8_t> value_dist(0, 0xFF);   // Distribution for 8-bit values
+
+    for (int i = 0; i < numBytes; ++i) {
+        uint16_t addr = addr_dist(gen);
+        uint8_t value = value_dist(gen);
+        bus.write(addr, value);
+    }
+
+    addMessage("Randomized!", 0xFFFFFF00);
 }

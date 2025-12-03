@@ -115,4 +115,7 @@ public:
 	void disconnectCart();
 	void setController1(ControllerType type);
 	void setController2(ControllerType type);
+
+	// tieg
+	void randomizeMemory(int numBytes);
 };
