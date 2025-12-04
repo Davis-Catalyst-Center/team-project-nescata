@@ -62,7 +62,6 @@ public:
 	void parseCommand(std::string command);
 
 	// commands
-	void commandReset();
 	void commandTogglePause();
 	void commandQuit();
 	void commandFrameAdvance();
@@ -104,6 +103,7 @@ public:
 
 	void run();
 	void reset();
+	void powerOn();
 	void fullReset();
 
 	void handleWindowEvents();
@@ -115,4 +115,7 @@ public:
 	void disconnectCart();
 	void setController1(ControllerType type);
 	void setController2(ControllerType type);
+
+	// tieg
+	void randomizeMemory(int numBytes);
 };

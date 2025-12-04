@@ -1,14 +1,10 @@
 #include "cpu.hpp"
 
-
-
 // CPU IMPLEMENTATION
 
 // FUNCTIONS
 
 CPU::CPU() {}
-
-
 
 uint8 CPU::readMem(uint16 addr) {
 	if (bus) {
@@ -765,28 +761,54 @@ void CPU::op_JAM(AddressingMode mode) {
 // RUNNING
 
 void CPU::reset() {
-	a = 0;
-	x = 0;
-	y = 0;
-	readMem16(RESET_VECTOR);
+	// 1. A, X, and Y registers are NOT cleared on a standard warm reset.
+	// They retain their previous values.
+
+	// 2. The 6502 hardware "fake pushes" 3 bytes (PCH, PCL, Status) to the stack
+	// during reset but suppresses the write. This decrements the Stack Pointer by 3.
 	s -= 3;
+
+	// 3. Interrupts are disabled
 	p.I = 1;
+	
+	// 4. Decimal mode is usually cleared on reset (especially on NES/2A03)
+	p.D = 0;
+
+	// 5. CRITICAL FIX: You must actually load the PC from the vector address.
+	// The previous code read it but discarded the result.
+	pc = readMem16(RESET_VECTOR);
+
+	// 6. Reset sequence takes 7 cycles
+	cycles = 7;
+	jammed = false;
 }
 
 void CPU::powerOn() {
 	if (enableCpuLog) {
-		// Clear cpu.log on power on
 		FILE* f = fopen("cpu.log", "w");
 		if (f) {
 			fclose(f);
 		}
 	}
+
+	// 1. Set specific power-up state for registers (Cold Boot)
 	a = 0;
 	x = 0;
 	y = 0;
+
+	// 2. Set Status Register (P)
+	// 0x24 = 00100100 (Unused bit 5 is 1, Interrupt Disable is 1)
+	// Some documentation suggests 0x34, but internal storage usually ignores the B flag.
+	p.raw = 0x24; 
+
+	// 3. Set Stack Pointer (S)
+	// On power-up, S is technically undefined, but the RESET sequence immediately
+	// follows power-on. The Reset sequence pushes 3 bytes.
+	// Standard emulation practice for "Ready to run" state is S = 0xFD.
+	s = 0xFD;
+
+	// 4. Load Program Counter
 	pc = readMem16(RESET_VECTOR);
-	s = 0;
-	p.raw = 0b00100100;
 
 	cycles = 7;
 	jammed = false;

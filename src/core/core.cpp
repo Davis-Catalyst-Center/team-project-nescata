@@ -54,8 +54,13 @@ void Core::reset() {
 	cpu.reset();
 }
 
+void Core::powerOn() {
+	cpu.powerOn();
+}
+
 void Core::fullReset() {
 	cpu.powerOn();
+	cpu.reset();
 }
 
 void Core::handleWindowEvents() {
@@ -75,9 +80,9 @@ void Core::handleWindowEvents() {
 		}
 	}
 
+	processHeldKeys();
 	updateMessages();
 	renderMessages();
-	processHeldKeys();
 
 	// update controller state from current keyboard state
 	uint8 buttonState = getControllerButtonState();
@@ -86,6 +91,8 @@ void Core::handleWindowEvents() {
 
 void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 	bool pressed = (keyEvent.type == SDL_KEYDOWN && keyEvent.repeat == 0);
+	const uint8* keyboardState = SDL_GetKeyboardState(NULL);
+	bool modShift = keyboardState[SDL_SCANCODE_LSHIFT] || keyboardState[SDL_SCANCODE_RSHIFT];
 
 	if (awaitingTextInput) {
 		if (pressed) {
@@ -111,7 +118,12 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 
 	switch (keyEvent.keysym.sym) {
 		case SDLK_r: // reset
-			if (pressed) commandReset();
+			if (pressed) {
+				if (modShift) {
+					powerOn();
+				}
+				reset();
+			}
 			break;
 		case SDLK_ESCAPE: // quit
 			if (pressed) commandQuit();
@@ -124,6 +136,10 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 			break;
 		case SDLK_f: // advance a single frame when paused
 			if (pressed) commandFrameAdvance();
+			break;
+		//tieg
+		case SDLK_g:
+			if (pressed) randomizeMemory(100);
 			break;
 		// speed controls
 		case SDLK_EQUALS: // speed up
@@ -144,6 +160,8 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 				addMessage("+ - Increase Emulation Speed", 0xFFFFFF00);
 				addMessage("- - Decrease Emulation Speed", 0xFFFFFF00);
 				addMessage("; - Command line mode", 0xFFFFFF00);
+				// tieg
+				addMessage("G - Randomize 100 Bytes in Memory", 0xFFFFFF00);
 			}
 			break;
 		case SDLK_SEMICOLON:
@@ -331,7 +349,9 @@ void Core::parseCommand(std::string command) {
 	if (tokens.empty()) return;
 	// handle commands
 	if (tokens[0] == "reset") {
-		commandReset();
+		reset();
+	} else if (tokens[0] == "power") {
+		powerOn();
 	} else if (tokens[0] == "pause") {
 		commandTogglePause();
 	} else if (tokens[0] == "quit" || tokens[0] == "exit") {
@@ -383,7 +403,8 @@ void Core::parseCommand(std::string command) {
 		}
 	} else if (tokens[0] == "help") {
 		addMessage("available commands:", 0xFFFFFF00);
-		addMessage("reset - reset the emulator", 0xFFFFFF00);
+		addMessage("reset - reset the rom", 0xFFFFFF00);
+		addMessage("poweron - power cycle the emulator", 0xFFFFFF00);
 		addMessage("pause - toggle pause/unpause", 0xFFFFFF00);
 		addMessage("quit/exit - quit the emulator", 0xFFFFFF00);
 		addMessage("setspeed <speed> - set emulation speed", 0xFFFFFF00);
@@ -393,10 +414,6 @@ void Core::parseCommand(std::string command) {
 	} else {
 		addMessage("Unknown command: " + tokens[0], 0xFFFF0000);
 	}
-}
-
-void Core::commandReset() {
-	fullReset();
 }
 
 void Core::commandTogglePause() {
@@ -416,7 +433,6 @@ void Core::commandQuit() {
 void Core::commandFrameAdvance() {
 	passFrame = true;
 	if (!paused) paused = true;
-	addMessage("Advancing a single frame.", 0xFFFFFF00);
 }
 
 void Core::commandSpeedUp(double factor) {
@@ -506,4 +522,23 @@ void Core::setController1(ControllerType type) {
 
 void Core::setController2(ControllerType type) {
 	controller2 = Controller(type);
+}
+
+// tieg
+#include <random>
+
+void Core::randomizeMemory(int numBytes) {
+    // Set up a random number generator
+    std::random_device rd;  // Obtain a random number from hardware
+    std::mt19937 gen(rd()); // Seed the generator
+    std::uniform_int_distribution<uint16_t> addr_dist(0, 0xFFFF); // Distribution for 16-bit addresses
+    std::uniform_int_distribution<uint8_t> value_dist(0, 0xFF);   // Distribution for 8-bit values
+
+    for (int i = 0; i < numBytes; ++i) {
+        uint16_t addr = addr_dist(gen);
+        uint8_t value = value_dist(gen);
+        bus.write(addr, value);
+    }
+
+    addMessage("Randomized!", 0xFFFFFF00);
 }
