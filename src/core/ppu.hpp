@@ -27,6 +27,8 @@ private:
 	PPUSCRL scrl;
 	PPUADDR addr;
 
+	bool w;
+
 	uint8 vram[0x800];  // PPU VRAM
 	OAM oam;            // Object Attribute Memory (OAM)
 	uint8 palette[32];  // Palette Memory
@@ -37,9 +39,6 @@ private:
 	int scanline;       // Current PPU scanline
 	int frame;          // Current frame count
 
-	// Write toggle for PPUSCROLL / PPUADDR writes (first/second write).
-	// Hardware clears this toggle when PPUSTATUS is read.
-	bool writeToggle;
 
 	Cart* cart = nullptr;
 	Composite* comp = nullptr;

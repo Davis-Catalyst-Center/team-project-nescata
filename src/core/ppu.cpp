@@ -17,7 +17,7 @@ void PPU::reset() {
 	ctrl.raw = 0;
 	mask.raw = 0;
 	stat.raw = 0;
-	writeToggle = true; // next write is the first write
+	w = true;
 
 	// Clear VRAM and OAM
 	// VRAM is 0x800 bytes (nametables + palettes are accessed through mirroring)
@@ -33,8 +33,30 @@ bool PPU::step(int cycles) {
 		return false;
 	}
 
-	if (MASKshowSprites() && oam.sprites[0].y == scanline && oam.sprites[0].x <= dot) {
-		stat.S = 1;
+	if (MASKshowSprites() && oam.sprites[0].y <= scanline && oam.sprites[0].y + 8 > scanline && oam.sprites[0].x <= dot) {
+		// now check if the sprite has any pixels in the row
+		// copied from composite sprite rendering
+		
+		int spriteY = oam.sprites[0].y;
+
+		int y = scanline - spriteY;
+	
+		int spriteX = oam.sprites[0].x;
+		int spriteIdx = oam.sprites[0].tileIdx;
+		uint8 attributes = oam.sprites[0].attr;
+
+		bool flipY = (attributes & 0x80) != 0;
+
+		uint8 highByte, lowByte;
+
+		int row = flipY ? (7 - y) : y;
+		highByte = cart->readChr(CTRLspritePatternTableAddress() | spriteIdx * 16 + row);
+		lowByte  = cart->readChr(CTRLspritePatternTableAddress() | spriteIdx * 16 + row + 8);
+
+		if (highByte | lowByte) {
+			// not transparent
+			stat.S = 1;
+		}
 	}
 
 	dot -= 341;
@@ -56,7 +78,7 @@ bool PPU::step(int cycles) {
 		stat.V = 0;
 		stat.S = 0;
 		stat.O = 0;
-		writeToggle=true;
+		w=true;
 		return true;
 	}
 
@@ -154,7 +176,7 @@ uint8 PPU::STATread() {
 	uint8 value = stat.raw;
 	// Reading PPUSTATUS clears VBlank (bit V) and resets the write toggle (w)
 	stat.V = 0;
-	writeToggle = true;
+	w = true;
 	return value;
 }
 
@@ -176,14 +198,14 @@ bool PPU::STATspriteOverflow() {
 
 // PPUSCRL
 void PPU::SCRLwrite(uint8 value) {
-	// Use member writeToggle instead of a static local so PPUSTATUS reads
+	// Use member w instead of a static local so PPUSTATUS reads
 	// can reset this toggle as hardware requires.
-	if (writeToggle) {
+	if (w) {
 		scrl.x = value;
 	} else {
 		scrl.y = value;
 	}
-	writeToggle = !writeToggle;
+	w = !w;
 }
 
 PPUSCRL PPU::SCRLget() {
@@ -192,13 +214,13 @@ PPUSCRL PPU::SCRLget() {
 
 // PPUADDR
 void PPU::ADDRwrite(uint8 value) {
-	// Use member writeToggle. First write sets high 6 bits, second write sets low 8 bits.
-	if (writeToggle) {
+	// Use member w. First write sets high 6 bits, second write sets low 8 bits.
+	if (w) {
 		addr.high = value & 0x3F;  // Only 6 bits are used
 	} else {
 		addr.low = value;
 	}
-	writeToggle = !writeToggle;
+	w = !w;
 }
 
 PPUADDR PPU::ADDRget() {

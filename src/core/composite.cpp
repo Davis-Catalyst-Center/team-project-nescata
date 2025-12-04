@@ -49,15 +49,18 @@ void Composite::renderScanline(int scanline) {
 }
 
 void Composite::renderBackgroundAtLine(int scanline, uint32* lineBuf) {
-	int scrollX = ppu->SCRLget().x;
+	int scrollX = ppu->SCRLget().x | (ppu->ctrl.raw & 0x1) * 256;
 	int scrollY = ppu->SCRLget().y;
 	// render all 4 nametables to handle scrolling
 	// mirroring is handled in PPU nametable read/write functions
 	// nametables are laid out in a 2x2 grid at fixed positions
 	// we scroll the screen over them, but here we just move them under the screen
-	renderNametableAtLine(scanline, 0, -scrollX, -scrollY, lineBuf);
+
+	int ntlx = scrollX > 256 ? 512 - scrollX : -scrollX;
+
+	renderNametableAtLine(scanline, 0, ntlx, -scrollY, lineBuf);
 	renderNametableAtLine(scanline, 1, 256 - scrollX, -scrollY, lineBuf);
-	renderNametableAtLine(scanline, 2, -scrollX, 256 - scrollY, lineBuf);
+	renderNametableAtLine(scanline, 2, ntlx, 256 - scrollY, lineBuf);
 	renderNametableAtLine(scanline, 3, 256 - scrollX, 256 - scrollY, lineBuf);
 }
 
@@ -140,9 +143,6 @@ void Composite::renderSpritesAtLine(int scanline, int priority, uint32* lineBuf)
 		bool flipX = (attributes & 0x40) != 0;
 		bool flipY = (attributes & 0x80) != 0;
 		uint8 paletteIndex = (attributes & 0x03) + 4; // sprite palettes start at index 4
-
-		uint32 spriteLine[8] = {0};
-
 
 		// get the full tile data from CHR ROM/RAM
 		// each tile is 16 bytes. the first 8 bytes are the low bits of each pixel row,
