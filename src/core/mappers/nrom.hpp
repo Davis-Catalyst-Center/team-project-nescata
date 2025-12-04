@@ -51,4 +51,8 @@ public:
 		// Mapper 0 can have CHR-RAM, but this implementation assumes CHR-ROM.
 		// For CHR-ROM, writes are ignored.
 	}
+
+	void reset() override {
+		// do nothing
+	}
 };

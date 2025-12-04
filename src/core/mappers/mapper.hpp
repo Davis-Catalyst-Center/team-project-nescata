@@ -19,6 +19,7 @@ public:
 	virtual void write(uint16 addr, uint8 value) = 0;
 	virtual uint8 readChr(uint16 addr) = 0;
 	virtual void writeChr(uint16 addr, uint8 value) = 0;
+	virtual void reset() = 0;
 	virtual ~Mapper() = default;
 
 	void loadRomBanks(
