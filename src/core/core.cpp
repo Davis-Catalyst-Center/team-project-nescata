@@ -356,7 +356,7 @@ void Core::parseCommand(std::string command) {
 		commandTogglePause();
 	} else if (tokens[0] == "quit" || tokens[0] == "exit") {
 		commandQuit();
-	} else if (tokens[0] == "setspeed") {
+	} else if (tokens[0] == "speed") {
 		if (tokens.size() >= 2) {
 			double speed = std::stod(tokens[1]);
 			commandSetSpeed(speed);
@@ -407,7 +407,7 @@ void Core::parseCommand(std::string command) {
 		addMessage("poweron - power cycle the emulator", 0xFFFFFF00);
 		addMessage("pause - toggle pause/unpause", 0xFFFFFF00);
 		addMessage("quit/exit - quit the emulator", 0xFFFFFF00);
-		addMessage("setspeed <speed> - set emulation speed", 0xFFFFFF00);
+		addMessage("speed <speed> - set emulation speed", 0xFFFFFF00);
 		addMessage("setmem <addr> <value> - set memory", 0xFFFFFF00);
 		addMessage("getmem <addr> - get memory at address", 0xFFFFFF00);
 		addMessage("loadrom <filename> - load ROM from file", 0xFFFFFF00);
