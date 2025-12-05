@@ -137,7 +137,15 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 		case SDLK_f: // advance a single frame when paused
 			if (pressed) commandFrameAdvance();
 			break;
-		//tieg
+		case SDLK_k:
+			if (pressed) {
+				cpu.jammed = !cpu.jammed;
+				if (cpu.jammed)
+					addMessage("CPU killed", 0xFFFF0000);
+				else
+					addMessage("CPU revived??", 0xFF00FF00);
+			}
+			break;
 		case SDLK_g:
 			if (pressed) randomizeMemory(100);
 			break;
@@ -156,12 +164,12 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 				addMessage("P - Pause/Unpause", 0xFFFFFF00);
 				addMessage("B - Rebind Controller Keys", 0xFFFFFF00);
 				addMessage("F - Advance Single Frame (when paused)", 0xFFFFFF00);
+				addMessage("K - Toggle CPU killed state", 0xFFFFFF00);
+				addMessage("G - Randomize 100 Bytes in Memory", 0xFFFFFF00);
 				addMessage(". - Sprint while held", 0xFFFFFF00);
 				addMessage("+ - Increase Emulation Speed", 0xFFFFFF00);
 				addMessage("- - Decrease Emulation Speed", 0xFFFFFF00);
-				addMessage("; - Command line mode", 0xFFFFFF00);
-				// tieg
-				addMessage("G - Randomize 100 Bytes in Memory", 0xFFFFFF00);
+				addMessage("; - Command line mode", 0xFFFFFF00); 
 			}
 			break;
 		case SDLK_SEMICOLON:
@@ -401,6 +409,18 @@ void Core::parseCommand(std::string command) {
 			}
 			commandLoadROM(filename);
 		}
+	} else if (tokens[0] == "randomize") {
+		if (tokens.size() >= 2) {
+			try {
+				int n = std::stoi(tokens[1]);
+				randomizeMemory(n);
+				addMessage("Randomized memory: " + std::to_string(n) + " bytes", 0xFFFFFF00);
+			} catch (...) {
+				addMessage("Invalid number for randomize", 0xFFFF0000);
+			}
+		} else {
+			addMessage("Usage: randomize <bytes>", 0xFFFFFF00);
+		}
 	} else if (tokens[0] == "help") {
 		addMessage("available commands:", 0xFFFFFF00);
 		addMessage("reset - reset the rom", 0xFFFFFF00);
@@ -458,28 +478,34 @@ void Core::commandSetSpeed(double speed) {
 
 void Core::commandLoadROM(std::string filename) {
 	// load ROM from filename
-	Cart newCart = Cart(filename);
-	if (newCart.loadStatus != Cart::LOAD_SUCCESS) {
-		switch (cart->loadStatus) {
+	Cart* newCart = new Cart(filename);
+	if (newCart->loadStatus != Cart::LOAD_SUCCESS) {
+		switch (newCart->loadStatus) {
 			case Cart::LOAD_FILE_NOT_FOUND:
-				addMessage("File not found: " + cart->filename, 0xFFFF0000);
+				addMessage("File not found: " + newCart->filename, 0xFFFF0000);
 				break;
 			case Cart::LOAD_INVALID_FORMAT:
-				addMessage("Invalid ROM format: " + cart->filename, 0xFFFF0000);
+				addMessage("Invalid ROM format: " + newCart->filename, 0xFFFF0000);
 				break;
 			case Cart::LOAD_UNSUPPORTED_MAPPER:
-				addMessage("Unsupported mapper: " + cart->filename, 0xFFFF0000);
+				addMessage("Unsupported mapper: " + newCart->filename, 0xFFFF0000);
 				break;
 			case Cart::LOAD_EMPTY:
-				addMessage("Empty ROM: " + cart->filename, 0xFFFF0000);
+				addMessage("Empty ROM: " + newCart->filename, 0xFFFF0000);
+				break;
+			default:
+				addMessage("Failed to load ROM: " + newCart->filename, 0xFFFF0000);
 				break;
 		}
+		// keep the current cart if load failed
+		delete newCart;
+		return;
 	}
-	// connect new cart
-	cart = new Cart(filename);
-	// should free previous cart if exists
-	connectCart(cart);
-	fullReset();
+
+	// connect new cart (this takes ownership via pointer)
+	connectCart(newCart);
+	// fullReset();
+	// dont reset, leave that to user
 }
 
 void Core::connectCart(Cart* cart) {

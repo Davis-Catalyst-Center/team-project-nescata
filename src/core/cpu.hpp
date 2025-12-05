@@ -136,19 +136,20 @@ private:
 	Bus* bus;
 
 	// STATE
-	bool jammed = false;
-
+	
 	long int cycles;
 	bool enableCpuLog = false;
-
+	
 	bool pageCrossed;
-
+	
 public:
 
+	bool jammed = false;
+	
 	CPU();
 	void reset();
 	void powerOn();
-
+	
 	// MEMORY INTERFACING
 
 	uint8 readMem(uint16 addr);

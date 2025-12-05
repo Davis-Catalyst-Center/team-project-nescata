@@ -21,8 +21,8 @@ int Window::StartWindow() {
 		return -1;
 	}
 
-	// Create Renderer (Hardware Accelerated)
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);// | SDL_RENDERER_PRESENTVSYNC);
+	// Create Renderer (Hardware Accelerated) and enable VSync to sync to display refresh
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
 	if (!renderer) {
 		std::cout << "Failed to create renderer: " << SDL_GetError() << "\n";
@@ -63,14 +63,31 @@ bool Window::pollEvent(SDL_Event* event) {
 void Window::updateSurface(double emulationSpeed) {
 	// current time from ctime in milliseconds
 	int64 currentTime = SDL_GetTicks64();
-	double targetFrameTime = (16.666 * 2) / emulationSpeed; // approx 60 fps
-	int64 timeSinceLastFrame = currentTime - timeAlive;
-	
-	if (timeSinceLastFrame < targetFrameTime) {
-		SDL_Delay((Uint32)(targetFrameTime - timeSinceLastFrame));
+
+	// Guard against invalid speed values
+	if (emulationSpeed <= 0.0) emulationSpeed = 1.0;
+
+	// Target frame time in milliseconds for 60 FPS, adjusted by emulation speed.
+	// e.g. emulationSpeed == 1.0 -> ~16.6667 ms, emulationSpeed == 2.0 -> ~8.333 ms
+	double targetFrameTime = (1000.0 / 60.0) / emulationSpeed;
+
+	// If timeAlive is zero (first frame), initialize it to now to avoid large delay
+	if (timeAlive == 0) {
+		timeAlive = currentTime;
 	}
-	
-	timeAlive = currentTime;
+
+	int64 timeSinceLastFrame = currentTime - timeAlive;
+
+	// A very large emulationSpeed (used elsewhere as a sentinel) means "don't wait"
+	if (emulationSpeed < 1000.0) {
+		if (timeSinceLastFrame < targetFrameTime) {
+			Uint32 delayMs = (Uint32)ceil(targetFrameTime - timeSinceLastFrame);
+			if (delayMs > 0) SDL_Delay(delayMs);
+		}
+	}
+
+	// Update the last-frame timestamp after any sleeping
+	timeAlive = SDL_GetTicks64();
 
 	// Present the backbuffer to the screen
 	SDL_RenderPresent(renderer);

@@ -207,26 +207,37 @@ void CPU::_branch(bool condition) {
 }
 
 void CPU::_interrupt(CPU::InterruptVector vec) {
-	uint16 vectorAddr = RESET_VECTOR;
-	switch (vec) {
-		case CPU::VECTOR_NMI:   vectorAddr = NMI_VECTOR; break;
-		case CPU::VECTOR_RESET: vectorAddr = RESET_VECTOR; break;
-		case CPU::VECTOR_IRQ:   vectorAddr = IRQ_VECTOR; break;
+	// RESET is a special case: it does not push to the stack or set B flag.
+	if (vec == CPU::VECTOR_RESET) {
+		p.I = 1;
+		pc = readMem16(RESET_VECTOR);
+		return;
 	}
 
+	uint16 vectorAddr = NMI_VECTOR; // default for NMI
+	if (vec == CPU::VECTOR_NMI) {
+		vectorAddr = NMI_VECTOR;
+	} else {
+		// BRK and IRQ both use the IRQ vector
+		vectorAddr = IRQ_VECTOR;
+	}
+
+	// Push return address then status flags
 	push16(pc);
 
 	uint8 flags = p.raw;
 	if (vec == CPU::VECTOR_BRK) {
-		flags |= (1 << 4);
+		flags |= (1 << 4); // set B flag for BRK
 	} else {
 		flags &= ~(1 << 4);
 	}
-	flags |= (1 << 5);
+	flags |= (1 << 5); // unused bit typically set
 	push(flags);
 
+	// Disable further IRQs
 	p.I = 1;
 
+	// Load interrupt vector
 	pc = readMem16(vectorAddr);
 }
 
