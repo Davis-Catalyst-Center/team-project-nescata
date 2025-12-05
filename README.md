@@ -1,1 +1,16 @@
 # nescata
+---
+
+
+## todo
+
+- fix scroll
+  - https://www.nesdev.org/wiki/PPU_scrolling
+  - https://forums.nesdev.org/viewtopic.php?t=21527
+- add more mappers
+  - mmc1
+    - https://www.nesdev.org/wiki/MMC1
+  - mmc3
+    - https://www.nesdev.org/wiki/MMC3
+    - https://forums.nesdev.org/viewtopic.php?t=16781
+- 

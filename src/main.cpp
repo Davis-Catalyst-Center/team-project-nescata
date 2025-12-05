@@ -1,5 +1,5 @@
-#include "core/core.hpp"
-#include "core/cart.hpp"
+#include "core.hpp"
+#include "cart.hpp"
 
 
 int main(int argc, char* argv[]) {
