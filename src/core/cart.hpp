@@ -6,6 +6,9 @@
 #include <string>
 
 #include "mappers/mapper.hpp"
+
+#include "mappers/nrom.hpp"
+
 #include "types.hpp"
 
 enum MirroringType {

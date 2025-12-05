@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <ctime>
 #include <SDL2/SDL.h>

@@ -7,6 +7,7 @@ int main(int argc, char* argv[]) {
 	Cart cart(argc > 1 ? argv[1] : "");
 
 	core.connectCart(&cart);
+	cart.mapper->writeProtect = false;
 	core.setController1(STANDARD);
 	// core.setController2(STANDARD);
 	core.run();

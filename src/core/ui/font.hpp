@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../types.hpp"
 
 // i made this font myself, converted to an array from bdf
