@@ -22,7 +22,7 @@ int Window::StartWindow() {
 	}
 
 	// Create Renderer (Hardware Accelerated) and enable VSync to sync to display refresh
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	renderer = SDL_CreateRenderer(window, -1, 0);// | SDL_RENDERER_PRESENTVSYNC);
 
 	if (!renderer) {
 		std::cout << "Failed to create renderer: " << SDL_GetError() << "\n";

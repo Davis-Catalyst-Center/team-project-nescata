@@ -13,9 +13,14 @@ class PPU {
 	friend Composite;
 private:
 	inline static const uint8 MIRROR_TABLE[3][4] = {
-		{0, 0, 1, 1}, // HORIZONTAL
-		{0, 1, 0, 1}, // VERTICAL
-		{0, 1, 2, 3}, // FOUR-SCREEN
+		{0, 0,
+		 2, 2}, // HORIZONTAL
+
+		{0, 1,
+		 0, 1}, // VERTICAL
+		 
+		{0, 1,
+		 2, 3}, // FOUR-SCREEN
 	};
 
 	// PPU REGISTERS
@@ -29,7 +34,7 @@ private:
 
 	bool w;
 
-	uint8 vram[0x800];  // PPU VRAM
+	uint8 vram[0x1000];  // PPU VRAM
 	OAM oam;            // Object Attribute Memory (OAM)
 	uint8 palette[32];  // Palette Memory
 	uint8 buffer;       // Internal read buffer for PPUDATA reads

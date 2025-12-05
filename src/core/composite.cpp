@@ -49,23 +49,25 @@ void Composite::renderScanline(int scanline) {
 }
 
 void Composite::renderBackgroundAtLine(int scanline, uint32* lineBuf) {
-	int scrollX = ppu->SCRLget().x | (ppu->ctrl.raw & 0x1) * 256;
-	int scrollY = ppu->SCRLget().y;
+	int scrollX = ppu->SCRLget().x | (ppu->ctrl.raw & 1) * 256;
+	int scrollY = ppu->SCRLget().y | (ppu->ctrl.raw & 2) * 128;
 	// render all 4 nametables to handle scrolling
 	// mirroring is handled in PPU nametable read/write functions
 	// nametables are laid out in a 2x2 grid at fixed positions
 	// we scroll the screen over them, but here we just move them under the screen
 
 	int ntlx = scrollX > 256 ? 512 - scrollX : -scrollX;
+	int ntty = scrollY > 240 ? 496 - scrollY : -scrollY;
 
-	renderNametableAtLine(scanline, 0, ntlx, -scrollY, lineBuf);
-	renderNametableAtLine(scanline, 1, 256 - scrollX, -scrollY, lineBuf);
-	renderNametableAtLine(scanline, 2, ntlx, 256 - scrollY, lineBuf);
-	renderNametableAtLine(scanline, 3, 256 - scrollX, 256 - scrollY, lineBuf);
+	renderNametableAtLine(scanline, 0, ntlx,       ntty,       lineBuf);
+	renderNametableAtLine(scanline, 1, ntlx + 256, ntty,       lineBuf);
+	renderNametableAtLine(scanline, 2, ntlx,       ntty + 240, lineBuf);
+	renderNametableAtLine(scanline, 3, ntlx + 256, ntty + 240, lineBuf);
 }
 
 void Composite::renderNametableAtLine(int scanline, int nametableIdx, int xPos, int yPos, uint32* lineBuf) {
 	int lineInNametable = scanline - yPos;
+	if (lineInNametable < -240) lineInNametable += 480;
 	if (lineInNametable < 0 || lineInNametable >= 240) {
 		return; // line not in this nametable
 	}
@@ -75,8 +77,10 @@ void Composite::renderNametableAtLine(int scanline, int nametableIdx, int xPos, 
 	int nametableBaseAddr = 0x2000 + nametableIdx * 0x400;
 	int attributeBaseAddr = nametableBaseAddr + 0x3C0;
 
-	int tileRowOffset = lineInNametable / 8 * 32;
-	int tileYInRow = lineInNametable % 8;
+	// Wrap lineInNametable for vertical scrolling
+	int wrappedLine = lineInNametable % 240;
+	int tileRowOffset = wrappedLine / 8 * 32;
+	int tileYInRow = wrappedLine % 8;
 
 	for (int tileCol = 0; tileCol < 32; tileCol++) {
 		int tileXPos = xPos + tileCol * 8;
@@ -87,12 +91,12 @@ void Composite::renderNametableAtLine(int scanline, int nametableIdx, int xPos, 
 		uint8 tileIdx = ppu->readNametable(nametableBaseAddr + tileRowOffset + tileCol);
 
 		// get attribute byte
-		int attrRow = (lineInNametable / 32);
+		int attrRow = (wrappedLine / 32);
 		int attrCol = (tileCol / 4);
 		uint8 attributeByte = ppu->readNametable(attributeBaseAddr + attrRow * 8 + attrCol);
 
 		// determine which quadrant of the attribute byte to use
-		int quadrant = ((lineInNametable % 32) / 16) * 2 + ((tileCol % 4) / 2);
+		int quadrant = ((wrappedLine % 32) / 16) * 2 + ((tileCol % 4) / 2);
 		uint8 paletteIndex = (attributeByte >> (quadrant * 2)) & 0x03;
 
 		// get the full tile data from CHR ROM/RAM
