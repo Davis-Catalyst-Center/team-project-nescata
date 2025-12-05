@@ -11,7 +11,7 @@
 
 static int WIDTH = 256;
 static int HEIGHT = 240;
-static int PIXEL_SCALE = 3;
+static int PIXEL_SCALE = 2;
 
 class Window {
 private:
