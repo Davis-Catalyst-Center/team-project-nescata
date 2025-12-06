@@ -1,6 +1,7 @@
 #include "cart.hpp"
-#include "mappers/nrom.hpp" // mapper: 0
-#include "mappers/mmc1.hpp" // mapper: 1
+#include "mappers/NROM.hpp"  // mapper: 0
+#include "mappers/MMC1.hpp"  // mapper: 1
+#include "mappers/AxROM.hpp" // mapper: 7
 
 Cart::Cart() {
 
@@ -67,33 +68,21 @@ Cart::Cart(std::string fName) {
 	}
 
 	// Load PRG ROM banks
-	std::vector<std::array<uint8_t, 0x4000>> prgData;
 	for (int i = 0; i < romBankCount; i++) {
 		std::array<uint8_t, 0x4000> bank{};
 		fread(bank.data(), sizeof(uint8_t), 0x4000, romFile);
-		prgData.push_back(bank);
+		prgBanks.push_back(bank);
 	}
 	// Load CHR ROM banks
-	std::vector<std::array<uint8_t, 0x2000>> chrData;
-	if (chrBankCount == 0) {
-		// Some carts have CHR RAM instead of ROM; allocate 8KB of CHR RAM
-		chrData.push_back(std::array<uint8_t, 0x2000>{});
-	} else {
-		for (int i = 0; i < chrBankCount; i++) {
-			std::array<uint8_t, 0x2000> bank{};
-			fread(bank.data(), sizeof(uint8_t), 0x2000, romFile);
-			chrData.push_back(bank);
-		}
+	for (int i = 0; i < chrBankCount; i++) {
+		std::array<uint8_t, 0x2000> bank{};
+		fread(bank.data(), sizeof(uint8_t), 0x2000, romFile);
+		chrBanks.push_back(bank);
 	}
 
 	fclose(romFile);
 
-	pickMapper(
-		mapperID,
-		batteryBacked,
-		&prgData,
-		&chrData
-	);
+	pickMapper(mapperID);
 
 	if (mapper) {
 		loadStatus = LOAD_SUCCESS;
@@ -133,18 +122,22 @@ void Cart::writeChr(uint16_t addr, uint8_t val) {
 	}
 }
 
-void Cart::pickMapper(
-	int mapperID,
-	bool batteryBacked,
-	std::vector<std::array<uint8_t, 0x4000>>* prgBanks,
-	std::vector<std::array<uint8_t, 0x2000>>* chrBanks
-) {
+int Cart::mirrorNametable(int ntIdx) {
+	if (mapper)
+		return mapper->mirrorNametable(ntIdx);
+	return ntIdx; // default no mirror
+}
+
+void Cart::pickMapper(int mapperID) {
 	switch (mapperID) {
 		case 0:
-			mapper = new NROM(prgBanks, chrBanks, batteryBacked);
+			mapper = new NROM(this);
 			break;
 		case 1:
-			mapper = new MMC1(prgBanks, chrBanks, batteryBacked);
+			mapper = new MMC1(this);
+			break;
+		case 7:
+			mapper = new AxROM(this);
 			break;
 		default:
 			loadStatus = LOAD_UNSUPPORTED_MAPPER;

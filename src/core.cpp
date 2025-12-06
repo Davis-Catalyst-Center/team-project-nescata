@@ -53,6 +53,9 @@ void Core::run() {
 
 void Core::reset() {
 	cpu.reset();
+	if (cart)
+		if (cart->mapper)
+			cart->mapper->reset();
 }
 
 void Core::powerOn() {

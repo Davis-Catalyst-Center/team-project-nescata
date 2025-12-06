@@ -317,12 +317,14 @@ void PPU::write(uint8_t value) {
 
 uint8_t PPU::readNametable(uint16_t addr) {
 	uint16_t ntIndex = (addr >> 10) & 0x03;
-	return vram[(MIRROR_TABLE[cart ? cart->mirroring : 0][ntIndex] << 10) + (addr & 0x3FF)];
+	uint16_t mirroredNtIndex = cart->mirrorNametable(ntIndex);
+	uint16_t ntAddress = mirroredNtIndex << 10;
+	return vram[ntAddress | (addr & 0x3FF)];
 }
 
 void PPU::writeNametable(uint16_t addr, uint8_t value) {
 	uint16_t ntIndex = (addr >> 10) & 0x03;
-	uint16_t mirroredNtIndex = MIRROR_TABLE[cart ? cart->mirroring : 0][ntIndex];
+	uint16_t mirroredNtIndex = cart->mirrorNametable(ntIndex);
 	uint16_t ntAddress = mirroredNtIndex << 10;
 	vram[ntAddress | (addr & 0x3FF)] = value;
 }

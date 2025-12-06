@@ -29,13 +29,16 @@ void Composite::renderScanline(int scanline) {
 
 	// back priority sprites
 	uint32_t spriteBackLine[256] = {0};
-	renderSpritesAtLine(scanline, 1, spriteBackLine);
+	if (ppu->MASKshowSprites())
+		renderSpritesAtLine(scanline, 1, spriteBackLine);
 	// render background tiles
 	uint32_t bgLine[256] = {0};
-	renderBackgroundAtLine(scanline, bgLine);
+	if (ppu->MASKshowBackground())
+		renderBackgroundAtLine(scanline, bgLine);
 	// front priority sprites
 	uint32_t spriteFrontLine[256] = {0};
-	renderSpritesAtLine(scanline, 0, spriteFrontLine);
+	if (ppu->MASKshowSprites())
+		renderSpritesAtLine(scanline, 0, spriteFrontLine);
 
 	// composite bg and sprites onto frame buffer
 	for (int x = 0; x < 256; x++) {
@@ -132,7 +135,7 @@ void Composite::renderNametableAtLine(int scanline, int nametableIdx, int xPos, 
 }
 
 void Composite::renderSpritesAtLine(int scanline, int priority, uint32_t* lineBuf) {
-	for (int s = 0; s < 64; s++) {
+	for (int s = 63; s >= 0; s--) { // 0 rendered on top
 		if (((ppu->oam.sprites[s].attr & 0x20) >> 5) != priority) {
 			continue; // skip sprites that don't match the priority
 		}

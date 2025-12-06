@@ -28,6 +28,9 @@ public:
 
 	std::string filename;
 
+	std::vector<std::array<uint8_t, 0x4000>> prgBanks;
+	std::vector<std::array<uint8_t, 0x2000>> chrBanks;
+	
 	Mapper* mapper = nullptr;
 
 	uint8_t header[16];
@@ -57,11 +60,8 @@ public:
 	uint8_t readChr(uint16_t addr);
 	void writeChr(uint16_t addr, uint8_t val);
 
+	int mirrorNametable(int ntIdx);
+
 private:
-	void pickMapper(
-		int mapperID,
-		bool batteryBacked,
-		std::vector<std::array<uint8_t, 0x4000>>* prgBanks,
-		std::vector<std::array<uint8_t, 0x2000>>* chrBanks
-	);
+	void pickMapper(int mapperID);
 };

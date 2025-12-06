@@ -13,16 +13,6 @@ class CPU;
 class PPU {
 	friend Composite;
 private:
-	inline static const uint8_t MIRROR_TABLE[3][4] = {
-		{0, 0,
-		 2, 2}, // HORIZONTAL
-
-		{0, 1,
-		 0, 1}, // VERTICAL
-		 
-		{0, 1,
-		 2, 3}, // FOUR-SCREEN
-	};
 
 	// PPU REGISTERS
 	PPUCTRL ctrl;
