@@ -127,9 +127,6 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 			}
 			break;
 		case SDLK_ESCAPE: // quit
-			if (pressed) commandQuit();
-			break;
-		case SDLK_p: // pause/unpause
 			if (pressed) commandTogglePause();
 			break;
 		case SDLK_b: // start rebind flow
@@ -366,12 +363,12 @@ void Core::parseCommand(std::string command) {
 	} else if (tokens[0] == "quit" || tokens[0] == "exit") {
 		commandQuit();
 	} else if (tokens[0] == "speed") {
-		if (tokens.size() >= 2) {
+		if (tokens.size() == 2) {
 			double speed = std::stod(tokens[1]);
 			commandSetSpeed(speed);
 		}
 	} else if (tokens[0] == "setmem") {
-		if (tokens.size() >= 3) {
+		if (tokens.size() == 3) {
 			// parse address and value (accept hex like 0xNNNN or decimal)
 			try {
 				unsigned long a = std::stoul(tokens[1], nullptr, 0);
@@ -388,7 +385,7 @@ void Core::parseCommand(std::string command) {
 			}
 		}
 	} else if (tokens[0] == "getmem") {
-		if (tokens.size() >= 2) {
+		if (tokens.size() == 2) {
 			try {
 				unsigned long a = std::stoul(tokens[1], nullptr, 0);
 				uint16_t addr = static_cast<uint16_t>(a & 0xFFFF);
@@ -402,7 +399,7 @@ void Core::parseCommand(std::string command) {
 			}
 		}
 	} else if (tokens[0] == "loadrom") {
-		if (tokens.size() >= 2) {
+		if (tokens.size() == 2) {
 			// join rest of tokens as filename (in case of spaces)
 			std::string filename = tokens[1];
 			for (size_t i = 2; i < tokens.size(); ++i) {
@@ -411,7 +408,7 @@ void Core::parseCommand(std::string command) {
 			commandLoadROM(filename);
 		}
 	} else if (tokens[0] == "randomize") {
-		if (tokens.size() >= 2) {
+		if (tokens.size() == 2) {
 			try {
 				int n = std::stoi(tokens[1]);
 				randomizeMemory(n);
@@ -427,20 +424,42 @@ void Core::parseCommand(std::string command) {
 			try {
 				unsigned long a = std::stoul(tokens[1], nullptr, 0);
 				unsigned long v = std::stoul(tokens[2], nullptr, 0);
-				uint16_t addr = static_cast<uint16_t>(a & 0xFFFF);
-				uint8_t value = static_cast<uint8_t>(v & 0xFF);
+				uint16_t addr = a & 0xFFFF;
+				uint8_t value = v & 0xFF;
 				addCheat(addr, value);
 				std::ostringstream oss;
 				oss << "Cheat at 0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << addr
-					<< " set to 0x" << std::setw(2) << static_cast<int>(value);
+					<< " set to 0x" << std::setw(2) << value;
 				addMessage(oss.str(), 0xFFFFFF00);
+			} catch (...) {
+				addMessage("Invalid address or value for cheat", 0xFFFF0000);
+			}
+		}
+	} else if (tokens[0] == "ggcheat") {
+		if (tokens.size() == 2) {
+			addGameGenieCheat(tokens[1]);
+		}
+	} else if (tokens[0] == "cheats") {
+		if (tokens.size() == 1) {
+			for (std::pair<uint16_t, uint8_t> cheat : bus.cheats) {
+				std::ostringstream oss;
+				oss << std::hex << std::uppercase << std::setfill('0') << std::setw(4)
+					<< "0x" << cheat.first << " = 0x" << std::setw(2) << cheat.second;
+				addMessage(oss.str(), 0xFFFFFF00);
+			}
+		}
+	} else if (tokens[0] == "rmcheat") {
+		if (tokens.size() == 2) {
+			try {
+				unsigned long a = std::stoul(tokens[1], nullptr, 0);
+				uint16_t addr = a & 0xFFFF;
+				bus.cheats.erase(addr);
+				std::ostringstream oss;
+				oss << "removed cheat at 0x" << std::hex << std::uppercase
+					<< std::setfill('0') << std::setw(4) << addr;
 			} catch (...) {
 				addMessage("Invalid address or value for setmem", 0xFFFF0000);
 			}
-		} else if (tokens.size() == 2) {
-			addGameGenieCheat(tokens[1]);
-		} else if (tokens.size() == 1) {
-			// for (std::pair<uint16_t, uint8_t>)
 		}
 	} else if (tokens[0] == "help") {
 		addMessage("available commands:", 0xFFFFFF00);
@@ -452,6 +471,10 @@ void Core::parseCommand(std::string command) {
 		addMessage("setmem <addr> <value> - set memory", 0xFFFFFF00);
 		addMessage("getmem <addr> - get memory at address", 0xFFFFFF00);
 		addMessage("loadrom <filename> - load ROM from file", 0xFFFFFF00);
+		addMessage("cheat <addr> <value> - set a cheat", 0xFFFFFF00);
+		addMessage("ggcheat <code> - set a game genie cheat", 0xFFFFFF00);
+		addMessage("cheats - list all cheats", 0xFFFFFF00);
+		addMessage("rmcheat <addr> - removes a cheat by addr", 0xFFFFFF00);
 	} else {
 		addMessage("Unknown command: " + tokens[0], 0xFFFF0000);
 	}
