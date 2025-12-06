@@ -1,5 +1,6 @@
 #include "cart.hpp"
-#include "mappers/nrom.hpp"
+#include "mappers/nrom.hpp" // mapper: 0
+#include "mappers/mmc1.hpp" // mapper: 1
 
 Cart::Cart() {
 
@@ -141,6 +142,9 @@ void Cart::pickMapper(
 	switch (mapperID) {
 		case 0:
 			mapper = new NROM(prgBanks, chrBanks, batteryBacked);
+			break;
+		case 1:
+			mapper = new MMC1(prgBanks, chrBanks, batteryBacked);
 			break;
 		default:
 			loadStatus = LOAD_UNSUPPORTED_MAPPER;

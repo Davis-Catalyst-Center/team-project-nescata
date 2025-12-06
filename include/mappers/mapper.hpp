@@ -15,7 +15,6 @@ protected:
 	std::vector<std::array<uint8_t, 0x2000>> chrBanks;
 
 public:
-	bool writeProtect;
 
 	virtual uint8_t read(uint16_t addr) = 0;
 	virtual void write(uint16_t addr, uint8_t value) = 0;

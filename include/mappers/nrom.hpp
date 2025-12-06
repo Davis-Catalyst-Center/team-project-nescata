@@ -1,12 +1,15 @@
 #pragma once
 
+#include <vector>
+#include <array>
 #include <cstdint>
 
 #include "mapper.hpp"
 
+// written by human
+
 class NROM : public Mapper {
 public:
-	bool writeProtect = true;
 	NROM(
 		std::vector<std::array<uint8_t, 0x4000>>* prgBanksRef,
 		std::vector<std::array<uint8_t, 0x2000>>* chrBanksRef,
@@ -40,16 +43,6 @@ public:
 
 	void write(uint16_t addr, uint8_t value) override {
 		// Mapper 0 has no bank switching, so writes do nothing.
-		// however, i don't care
-
-		if (writeProtect) return;
-
-		if (addr >= 0x8000 && addr <= 0xBFFF) {
-			prgBanks[0][addr - 0x8000] = value;
-		} else if (addr >= 0xC000 && addr <= 0xFFFF) {
-			prgBanks[1][addr - 0xC000] = value;
-		}
-
 	}
 
 	uint8_t readChr(uint16_t addr) override {
