@@ -27,7 +27,7 @@ int Window::StartWindow() {
 	if (!renderer) {
 		std::cout << "Failed to create renderer: " << SDL_GetError() << "\n";
 		// Fallback to software if hardware fails
-		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+		renderer = SDL_CreateRenderer(window, -1, 0);
 		if (!renderer) return -1;
 	}
 
@@ -92,10 +92,8 @@ void Window::updateSurface(double emulationSpeed) {
 	// Present the backbuffer to the screen
 	SDL_RenderPresent(renderer);
 	
-	// Strictly speaking, we should Clear after Presenting to prepare for next frame,
-	// but since emulators usually overwrite the whole screen every frame, it's optional.
-	// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	// SDL_RenderClear(renderer);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_RenderClear(renderer);
 }
 
 void Window::closeWindow() {

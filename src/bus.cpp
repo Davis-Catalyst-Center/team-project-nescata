@@ -19,6 +19,12 @@ void Bus::clearMem() {
 }
 
 uint8_t Bus::read(uint16_t addr) {
+
+	// check if there's a cheat for the address
+	if (cheats.find(addr) != cheats.end()) {
+		return cheats[addr];
+	}
+
 	switch (addr) {
 		case 0x0000 ... 0x1FFF: // 2KB RAM
 			// mirror the 2KB RAM every 0x800 bytes

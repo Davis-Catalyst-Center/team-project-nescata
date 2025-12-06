@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 
 // Forward declarations
 class APU;
@@ -19,6 +20,8 @@ private:
 	Controller* controller1 = nullptr;
 	Controller* controller2 = nullptr;
 public:
+
+	std::map<uint16_t, uint8_t> cheats;
 
 	Bus();
 

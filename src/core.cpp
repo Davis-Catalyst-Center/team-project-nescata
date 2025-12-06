@@ -422,6 +422,26 @@ void Core::parseCommand(std::string command) {
 		} else {
 			addMessage("Usage: randomize <bytes>", 0xFFFFFF00);
 		}
+	} else if (tokens[0] == "cheat") {
+		if (tokens.size() == 3) {
+			try {
+				unsigned long a = std::stoul(tokens[1], nullptr, 0);
+				unsigned long v = std::stoul(tokens[2], nullptr, 0);
+				uint16_t addr = static_cast<uint16_t>(a & 0xFFFF);
+				uint8_t value = static_cast<uint8_t>(v & 0xFF);
+				addCheat(addr, value);
+				std::ostringstream oss;
+				oss << "Cheat at 0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << addr
+					<< " set to 0x" << std::setw(2) << static_cast<int>(value);
+				addMessage(oss.str(), 0xFFFFFF00);
+			} catch (...) {
+				addMessage("Invalid address or value for setmem", 0xFFFF0000);
+			}
+		} else if (tokens.size() == 2) {
+			addGameGenieCheat(tokens[1]);
+		} else if (tokens.size() == 1) {
+			// for (std::pair<uint16_t, uint8_t>)
+		}
 	} else if (tokens[0] == "help") {
 		addMessage("available commands:", 0xFFFFFF00);
 		addMessage("reset - reset the rom", 0xFFFFFF00);
@@ -507,6 +527,80 @@ void Core::commandLoadROM(std::string filename) {
 	connectCart(newCart);
 	// fullReset();
 	// dont reset, leave that to user
+}
+
+uint8_t Core::gGCharToHex(char c) {
+	c = toupper(c);
+    switch (c) {
+        case 'A': return 0x0;
+        case 'P': return 0x1;
+        case 'Z': return 0x2;
+        case 'L': return 0x3;
+        case 'G': return 0x4;
+        case 'I': return 0x5;
+        case 'E': return 0x6;
+        case 'Y': return 0x7;
+        case 'X': return 0x8;
+        case 'U': return 0x9;
+        case 'K': return 0xA;
+        case 'O': return 0xB;
+        case 'T': return 0xC;
+        case 'V': return 0xD;
+        case 'S': return 0xE;
+        case 'N': return 0xF;
+        default: return 0xFF; // Error case
+    }
+}
+
+void Core::addGameGenieCheat(std::string cheatCode) {
+    if (cheatCode.length() != 6) {
+        addMessage("Code must be 6 characters!", 0xFFFF0000);
+        return;
+    }
+
+    // Convert string characters to their 4-bit integer values (C0 through C5)
+    uint8_t C0 = gGCharToHex(cheatCode[0]);
+    uint8_t C1 = gGCharToHex(cheatCode[1]);
+    uint8_t C2 = gGCharToHex(cheatCode[2]);
+    uint8_t C3 = gGCharToHex(cheatCode[3]);
+    uint8_t C4 = gGCharToHex(cheatCode[4]);
+    uint8_t C5 = gGCharToHex(cheatCode[5]);
+
+    if (C0 == 0xFF || C1 == 0xFF || C2 == 0xFF ||
+        C3 == 0xFF || C4 == 0xFF || C5 == 0xFF) {
+        addMessage("Invalid code!", 0xFFFF0000);
+        return;
+    }
+
+    // Decode the Address (15-bit value starting at 0x8000)
+    // Formula: 0x8000 + ((C3&7)<<12) | ((C5&7)<<8) | ((C4&8)<<8) | ((C2&7)<<4) | ((C1&8)<<4) | (C4&7) | (C3&8)
+    uint16_t addr = 0x8000 |
+        ((C3 & 7) << 12) |
+        ((C5 & 7) << 8)  |
+        ((C4 & 8) << 8)  |
+        ((C2 & 7) << 4)  |
+        ((C1 & 8) << 4)  |
+        (C4 & 7)         |
+        (C3 & 8);
+
+    // Decode the Value (8-bit replacement data)
+    // Formula: ((C1&7)<<4) | ((C0&8)<<4) | (C0&7) | (C5&8)
+    uint8_t val =
+        ((C1 & 7) << 4)  |
+        ((C0 & 8) << 4)  |
+        (C0 & 7)         |
+        (C5 & 8);
+
+    addCheat(addr, val);
+	std::ostringstream oss;
+	oss << "Cheat at 0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << addr
+		<< " set to 0x" << std::setw(2) << static_cast<int>(val);
+	addMessage(oss.str(), 0xFFFFFF00);
+}
+
+
+void Core::addCheat(uint16_t addr, uint8_t val) {
+	bus.cheats[addr] = val;
 }
 
 void Core::connectCart(Cart* cart) {

@@ -67,6 +67,9 @@ public:
 	void commandSlowDown(double factor);
 	void commandSetSpeed(double speed);
 	void commandLoadROM(std::string filename);
+	uint8_t gGCharToHex(char c);
+	void addGameGenieCheat(std::string cheatCode);
+	void addCheat(uint16_t addr, uint8_t val);
 
 	int lastKeyScancode = -1;
 	bool rebindInProgress = false;
