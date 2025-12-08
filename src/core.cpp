@@ -161,8 +161,7 @@ void Core::handleKeyboardEvent(SDL_KeyboardEvent keyEvent) {
 			if (pressed) {
 				addMessage("Keybinds:", 0xFFFFFF00);
 				addMessage("R - Reset", 0xFFFFFF00);
-				addMessage("ESC - Quit", 0xFFFFFF00);
-				addMessage("P - Pause/Unpause", 0xFFFFFF00);
+				addMessage("ESC - Pause/Unpause", 0xFFFFFF00);
 				addMessage("B - Rebind Controller Keys", 0xFFFFFF00);
 				addMessage("F - Advance Single Frame (when paused)", 0xFFFFFF00);
 				addMessage("K - Toggle CPU killed state", 0xFFFFFF00);
