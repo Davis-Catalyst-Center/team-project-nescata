@@ -20,13 +20,14 @@ private:
 	PPUSTAT stat;
 	uint8_t oamaddr;
 	uint8_t oamdata;
-	PPUSCRL scrl;
-	PPUADDR addr;
+	LoopyRegister v;
+	LoopyRegister t;
+	uint8_t x;
 
 	bool w;
 
-	uint8_t vram[0x1000];  // PPU VRAM
-	OAM oam;            // Object Attribute Memory (OAM)
+	uint8_t vram[0x1000]; // PPU VRAM
+	OAM oam;              // Object Attribute Memory (OAM)
 	uint8_t palette[32];  // Palette Memory
 	uint8_t buffer;       // Internal read buffer for PPUDATA reads
 	
@@ -87,11 +88,9 @@ public:
 
 	// PPUSCRL
 	void SCRLwrite(uint8_t value);
-	PPUSCRL SCRLget();
 
 	// PPUADDR
 	void ADDRwrite(uint8_t value);
-	PPUADDR ADDRget();
 	void ADDRincrement(int inc);
 
 	// Read and Write

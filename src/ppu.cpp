@@ -19,6 +19,9 @@ void PPU::reset() {
 	ctrl.raw = 0;
 	mask.raw = 0;
 	stat.raw = 0;
+	v.raw = 0;
+	t.raw = 0;
+	x = 0;
 	w = true;
 
 	// Clear VRAM and OAM
@@ -35,7 +38,7 @@ bool PPU::step(int cycles) {
 		return false;
 	}
 
-	if (MASKshowSprites() && oam.sprites[0].y <= scanline && oam.sprites[0].y + 8 > scanline && oam.sprites[0].x <= dot) {
+	if (MASKshowSprites() && MASKshowBackground() && oam.sprites[0].y <= scanline && oam.sprites[0].y + 8 > scanline && oam.sprites[0].x <= dot && oam.sprites[0].x + 8 > dot) {
 		// now check if the sprite has any pixels in the row
 		// copied from composite sprite rendering
 		
@@ -63,7 +66,9 @@ bool PPU::step(int cycles) {
 
 	dot -= 341;
 	comp->renderScanline(scanline);
-	// std::cout << "scanline: " << scanline << std::endl;
+	// after rendering line, update the x-scroll components of t to v
+	v.coarseX = t.coarseX;
+	v.nametableX = t.nametableX;
 	scanline++;
 
 	if (scanline == 241) {
@@ -80,7 +85,10 @@ bool PPU::step(int cycles) {
 		stat.V = 0;
 		stat.S = 0;
 		stat.O = 0;
-		w=true;
+		// before next line, update y-scroll components of t to v
+		v.coarseY = t.coarseY;
+		v.nametableY = t.nametableY;
+		v.fineY = t.fineY;
 		return true;
 	}
 
@@ -98,10 +106,11 @@ uint8_t PPU::CTRLread() {
 
 void PPU::CTRLwrite(uint8_t value) {
 	ctrl.raw = value;
+	t.nametable = value & 0b11;
 }
 
 uint16_t PPU::CTRLnametableAddress() {
-	switch (ctrl.N) {
+	switch (t.nametable) {
 		case 0: return 0x2000;
 		case 1: return 0x2400;
 		case 2: return 0x2800;
@@ -200,37 +209,29 @@ bool PPU::STATspriteOverflow() {
 
 // PPUSCRL
 void PPU::SCRLwrite(uint8_t value) {
-	// Use member w instead of a static local so PPUSTATUS reads
-	// can reset this toggle as hardware requires.
 	if (w) {
-		scrl.x = value;
+		t.coarseX = (value & 0b11111000) >> 3;
+		x = value & 0b111;
 	} else {
-		scrl.y = value;
+		t.coarseY = (value & 0b11111000) >> 3;
+		t.fineY = value & 0b111;
 	}
 	w = !w;
-}
-
-PPUSCRL PPU::SCRLget() {
-    return scrl;
 }
 
 // PPUADDR
 void PPU::ADDRwrite(uint8_t value) {
-	// Use member w. First write sets high 6 bits, second write sets low 8 bits.
 	if (w) {
-		addr.high = value & 0x3F;  // Only 6 bits are used
+		t.addressTop = value & 0b00111111;
 	} else {
-		addr.low = value;
+		t.addressLow = value;
+		v = t;
 	}
 	w = !w;
 }
 
-PPUADDR PPU::ADDRget() {
-    return addr;
-}
-
 void PPU::ADDRincrement(int inc) {
-	addr.value += inc;
+	v.address += inc;
 }
 
 // OAMADDR
@@ -263,7 +264,7 @@ void PPU::OAMDMAwrite(uint8_t* values) {
 }
 
 uint8_t PPU::read() {
-	uint16_t a = addr.value & 0x3FFF;
+	uint16_t a = v.address & 0x3FFF;
 	uint8_t result = 0;
 
 	switch (a) {
@@ -273,7 +274,17 @@ uint8_t PPU::read() {
 		case 0x2000 ... 0x2FFF:
 			result = useBuffer(readNametable(a));
 			break;
-		case 0x3F00 ... 0x3FFF:
+		case 0x3F10:
+		case 0x3F14:
+		case 0x3F18:
+		case 0x3F1C:
+			result = palette[(a ^ 0x10) & 0x1F];
+			break;
+		case 0x3F00 ... 0x3F0F:
+		case 0x3F11 ... 0x3F13:
+		case 0x3F15 ... 0x3F17:
+		case 0x3F19 ... 0x3F1B:
+		case 0x3F1D ... 0x3FFF:
 			result = palette[a & 0x1F];
 			break;
 		default:
@@ -286,7 +297,7 @@ uint8_t PPU::read() {
 }
 
 void PPU::write(uint8_t value) {
-	uint16_t a = addr.value & 0x3FFF;
+	uint16_t a = v.address & 0x3FFF;
 
 	switch (a) {
 		case 0x0000 ... 0x1FFF:

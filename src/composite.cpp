@@ -6,11 +6,6 @@ Composite::Composite() {
 	
 }
 
-
-
-
-
-
 void Composite::renderScanline(int scanline) {
 	int pixel = scanline * 256; // not << 8 in case of negative scanlines
 
@@ -54,8 +49,8 @@ void Composite::renderScanline(int scanline) {
 }
 
 void Composite::renderBackgroundAtLine(int scanline, uint32_t* lineBuf) {
-	int scrollX = ppu->SCRLget().x | (ppu->ctrl.raw & 1) * 256;
-	int scrollY = ppu->SCRLget().y | (ppu->ctrl.raw & 2) * 128;
+	int scrollX = ppu->v.nametableX * 256 | ppu->v.coarseX * 8 | ppu->x; 
+	int scrollY = ppu->v.nametableY * 256 | ppu->v.coarseY * 8 | ppu->v.fineY;
 	// render all 4 nametables to handle scrolling
 	// mirroring is handled in PPU nametable read/write functions
 	// nametables are laid out in a 2x2 grid at fixed positions

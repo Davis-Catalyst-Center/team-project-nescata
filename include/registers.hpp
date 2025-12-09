@@ -4,7 +4,7 @@
 
 union PPUCTRL {
 	struct {
-		uint8_t N : 2; // Base nametable address
+		uint8_t U : 2; // Base nametable address / unused because that goes to t
 		uint8_t I : 1; // VRAM address increment per CPU read/write of PPU data
 		uint8_t S : 1; // Sprite tile select
 		uint8_t B : 1; // Background tile select
@@ -45,22 +45,30 @@ union PPUSTAT {
 	uint8_t raw;
 };
 
-
-struct PPUSCRL {
-	uint8_t x : 8; // X scroll
-	uint8_t y : 8; // Y scroll
-};
-
-union PPUADDR {
+union LoopyRegister {
 	struct {
-		uint8_t low : 8;  // Low 8 bits of address
-		uint8_t high : 6; // High 6 bits of address
-		uint8_t unused : 2; // Unused to line up to the byte
+		uint8_t addressLow : 8;
+		uint8_t addressTop : 7;
+		uint8_t unused2 : 1; // padding
 	};
 	struct {
-		uint16_t value : 14; // Full 14-bit address
-		uint8_t unused2 : 2; // Unused to line up to the byte
-	};	
+		uint16_t address : 15;
+		uint8_t unused3 : 1; // padding
+	};
+    struct {
+        uint8_t coarseX : 5;
+        uint8_t coarseY : 5;
+		union {
+			struct {
+				uint8_t nametableX : 1;
+				uint8_t nametableY : 1;
+			};
+			uint8_t nametable : 2;
+		};
+        uint8_t fineY : 3;
+        uint8_t unused : 1; // padding
+    };
+    uint16_t raw;
 };
 
 union OAM {
