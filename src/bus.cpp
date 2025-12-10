@@ -121,11 +121,11 @@ void Bus::write(uint16_t addr, uint8_t val) {
 bool Bus::clock(int cycles) {
 	// cpu sends in cycles passed * 12 to get master clock cycles
 	if (apu) {
-		apu->step(cycles / 12); // APU runs at CPU clock rate
+		apu->step(cycles);
 	}
 	// do ppu last to pass nmi
 	if (ppu) {
-		return ppu->step(cycles / 3); // PPU runs at 3x CPU clock rate
+		return ppu->step(cycles / 4);
 	}
 	// if there's no ppu, just return false
 	return false;
