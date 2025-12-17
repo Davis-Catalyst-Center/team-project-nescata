@@ -39,7 +39,7 @@ bool PPU::step(int cycles) {
 		// now check if the sprite has any pixels in the row
 		// copied from composite sprite rendering
 		
-		int spriteY = oam.sprites[0].y;
+		int spriteY = oam.sprites[0].y + 1;
 
 		int y = scanline - spriteY;
 	

@@ -140,7 +140,7 @@ void Composite::renderSpritesAtLine(int scanline, int priority, uint32_t* lineBu
 			continue; // skip sprites that don't match the priority
 		}
 
-		int spriteY = ppu->oam.sprites[s].y;
+		int spriteY = ppu->oam.sprites[s].y + 1;
 
 		int y = scanline - spriteY;
 		if (y < 0 || y >= 8) continue; // tile not on this line
