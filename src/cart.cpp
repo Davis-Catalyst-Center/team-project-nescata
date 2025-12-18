@@ -1,7 +1,7 @@
 #include "cart.hpp"
-#include "mappers/NROM.hpp"  // mapper: 0
-#include "mappers/MMC1.hpp"  // mapper: 1
-#include "mappers/AxROM.hpp" // mapper: 7
+#include "mappers/NROM.hpp"  // mapper 0
+#include "mappers/MMC1.hpp"  // mapper 1
+#include "mappers/AxROM.hpp" // mapper 7
 
 Cart::Cart() {
 
