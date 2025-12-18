@@ -208,37 +208,39 @@ void CPU::_branch(bool condition) {
 }
 
 void CPU::_interrupt(CPU::InterruptVector vec) {
-	// RESET is a special case: it does not push to the stack or set B flag.
 	if (vec == CPU::VECTOR_RESET) {
-		p.I = 1;
+		p.I = 1; // Disable IRQs
 		pc = readMem16(RESET_VECTOR);
 		return;
 	}
 
-	uint16_t vectorAddr = NMI_VECTOR; // default for NMI
+	if (vec == CPU::VECTOR_IRQ && p.I) {
+		return;
+	}
+
+	push16(pc);
+
+	uint8_t flags_to_push = p.raw;
+
+	if (vec == CPU::VECTOR_BRK) {
+		flags_to_push |= (1 << 4);
+	} else {
+		flags_to_push &= ~(1 << 4);
+	}
+
+	flags_to_push |= (1 << 5); 
+
+	push(flags_to_push);
+
+	p.I = 1;
+
+	uint16_t vectorAddr;
 	if (vec == CPU::VECTOR_NMI) {
 		vectorAddr = NMI_VECTOR;
 	} else {
-		// BRK and IRQ both use the IRQ vector
 		vectorAddr = IRQ_VECTOR;
 	}
 
-	// Push return address then status flags
-	push16(pc);
-
-	uint8_t flags = p.raw;
-	if (vec == CPU::VECTOR_BRK) {
-		flags |= (1 << 4); // set B flag for BRK
-	} else {
-		flags &= ~(1 << 4);
-	}
-	flags |= (1 << 5); // unused bit typically set
-	push(flags);
-
-	// Disable further IRQs
-	p.I = 1;
-
-	// Load interrupt vector
 	pc = readMem16(vectorAddr);
 }
 
@@ -773,24 +775,10 @@ void CPU::op_JAM(AddressingMode mode) {
 // RUNNING
 
 void CPU::reset() {
-	// 1. A, X, and Y registers are NOT cleared on a standard warm reset.
-	// They retain their previous values.
-
-	// 2. The 6502 hardware "fake pushes" 3 bytes (PCH, PCL, Status) to the stack
-	// during reset but suppresses the write. This decrements the Stack Pointer by 3.
 	s -= 3;
-
-	// 3. Interrupts are disabled
 	p.I = 1;
-	
-	// 4. Decimal mode is usually cleared on reset (especially on NES/2A03)
 	p.D = 0;
-
-	// 5. CRITICAL FIX: You must actually load the PC from the vector address.
-	// The previous code read it but discarded the result.
 	pc = readMem16(RESET_VECTOR);
-
-	// 6. Reset sequence takes 7 cycles
 	cycles = 7;
 	jammed = false;
 }
@@ -803,23 +791,13 @@ void CPU::powerOn() {
 		}
 	}
 
-	// 1. Set specific power-up state for registers (Cold Boot)
 	a = 0;
 	x = 0;
 	y = 0;
 
-	// 2. Set Status Register (P)
-	// 0x24 = 00100100 (Unused bit 5 is 1, Interrupt Disable is 1)
-	// Some documentation suggests 0x34, but internal storage usually ignores the B flag.
-	p.raw = 0x24; 
-
-	// 3. Set Stack Pointer (S)
-	// On power-up, S is technically undefined, but the RESET sequence immediately
-	// follows power-on. The Reset sequence pushes 3 bytes.
-	// Standard emulation practice for "Ready to run" state is S = 0xFD.
+	p.raw = 0x24;
 	s = 0xFD;
 
-	// 4. Load Program Counter
 	pc = readMem16(RESET_VECTOR);
 
 	cycles = 7;
