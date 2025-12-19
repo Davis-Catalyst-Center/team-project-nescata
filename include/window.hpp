@@ -9,9 +9,9 @@
 
 #include <SDL2/SDL.h>
 
-static int WIDTH = 256;
-static int HEIGHT = 240;
-static int PIXEL_SCALE = 2;
+const int WIDTH = 256;
+const int HEIGHT = 240;
+const int PIXEL_SCALE = 2;
 
 class Window {
 private:
