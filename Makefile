@@ -34,17 +34,23 @@ CXXFLAGS  = -std=c++17 -g
 # ------------------------------------------
 WIN_SDL_LIB = /usr/x86_64-w64-mingw32/lib/libSDL2.a
 
-WIN_LDFLAGS = -static -static-libgcc -static-libstdc++ \
-              -L/usr/x86_64-w64-mingw32/lib \
-              -lmingw32 -lSDL2main $(WIN_SDL_LIB) \
-              -mwindows -Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va -lm \
-              -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 \
-              -loleaut32 -lshell32 -lsetupapi -lversion -luuid
+WIN_LDFLAGS = \
+			-static -static-libgcc -static-libstdc++ \
+			-L/usr/x86_64-w64-mingw32/lib \
+			-lmingw32 -lSDL2main $(WIN_SDL_LIB) \
+			-mwindows -Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va -lm \
+			-ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 \
+			-loleaut32 -lshell32 -lsetupapi -lversion -luuid
 
 # ------------------------------------------
-# Linux Specific Flags
+# Linux Specific Flags (Configured for Mixed Static/Dynamic Linking)
 # ------------------------------------------
-LINUX_LDFLAGS = -lSDL2
+# 1. Get the exact path to the static libSDL2.a file
+SDL_STATIC_LIB = $(shell pkg-config --variable=libdir sdl2)/libSDL2.a
+
+# 2. Get the required system dependencies (like ALSA, X11, pthread)
+#    We use sed to remove the -lSDL2 flag that pkg-config adds, as we link the .a file directly
+SDL_SYS_LIBS = $(shell pkg-config --static --libs sdl2 | sed 's/-lSDL2 //')
 
 # ==========================================
 # Rules
@@ -71,7 +77,7 @@ $(RES_OBJ): $(RC_FILE) $(ICO_ICON) | $(BUILD_DIR)
 	@echo "Compiling Resources..."
 	$(WIN_RES) $(RC_FILE) -o $(RES_OBJ)
 
-# 3. Link everything together (Added $(RES_OBJ))
+# 3. Link everything together
 windows: $(BUILD_DIR) $(SRCS) $(RES_OBJ)
 	@echo "Building for Windows..."
 	cp /usr/x86_64-w64-mingw32/bin/SDL2.dll $(BUILD_DIR)
@@ -82,22 +88,25 @@ windows: $(BUILD_DIR) $(SRCS) $(RES_OBJ)
 # Linux Build
 # ------------------------------------------
 linux: $(BUILD_DIR) $(SRCS)
-	@echo "Building for Linux (Static)..."
+	@echo "Building for Linux (Mixed Static/Dynamic - Standalone)..."
+	# Key change: linking SDL2 statically, but system libs dynamically
 	$(CXX) $(CXXFLAGS) $(INC) -o $(OUT_LINUX) $(SRCS) \
-		-static -static-libgcc -static-libstdc++ $(LINUX_LDFLAGS)
+		$(SDL_STATIC_LIB) \
+		-static-libgcc -static-libstdc++ \
+		$(SDL_SYS_LIBS)
 	@echo "Compiled Unix executable: $(OUT_LINUX)"
 
 # ------------------------------------------
-# Helper Commands
+# Helper Commands (These remain dynamic for faster local compilation/debugging)
 # ------------------------------------------
 run: $(BUILD_DIR) $(SRCS)
 	@echo "Compiling and Running..."
-	$(CXX) $(CXXFLAGS) $(INC) -o $(OUT_LINUX) $(SRCS) $(LINUX_LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(INC) -o $(OUT_LINUX) $(SRCS) $(shell pkg-config --libs sdl2)
 	./$(OUT_LINUX) $(ARGS)
 
 debug: $(BUILD_DIR) $(SRCS)
 	@echo "Compiling for Debug..."
-	$(CXX) $(CXXFLAGS) -g $(INC) -o $(OUT_LINUX) $(SRCS) $(LINUX_LDFLAGS)
+	$(CXX) $(CXXFLAGS) -g $(INC) -o $(OUT_LINUX) $(SRCS) $(shell pkg-config --libs sdl2)
 	gdb --args ./$(OUT_LINUX) $(ARGS)
 
 clean:
